@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Plus, Video, Image, Settings, Moon, Sun, BarChart3, Users, Calendar, Search } from 'lucide-react';
+import { Plus, Video, Image, Settings as SettingsIcon, Moon, Sun, BarChart3, Users, Calendar, Search } from 'lucide-react';
 import VideoManagement from './VideoManagement';
 import ProjectManagement from './ProjectManagement';
 import Dashboard from './Dashboard';
+import UserManagement from './UserManagement';
+import Settings from './Settings';
 import LogoutButton from '../auth/LogoutButton';
 import { apiRequestJson } from '../../utils/api';
 
@@ -21,9 +23,10 @@ const AdminPanel = () => {
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+    { id: 'users', label: 'Users', icon: Users },
     { id: 'videos', label: 'Videos', icon: Video },
     { id: 'projects', label: 'Projects', icon: Image },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    { id: 'settings', label: 'Settings', icon: SettingsIcon }
   ];
 
   const themeClasses: ThemeClasses = {
@@ -39,17 +42,14 @@ const AdminPanel = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard isDarkMode={isDarkMode} themeClasses={themeClasses} />;
+      case 'users':
+        return <UserManagement isDarkMode={isDarkMode} themeClasses={themeClasses} />;
       case 'videos':
         return <VideoManagement isDarkMode={isDarkMode} themeClasses={themeClasses} />;
       case 'projects':
         return <ProjectManagement isDarkMode={isDarkMode} themeClasses={themeClasses} />;
       case 'settings':
-        return (
-          <div className={`${themeClasses.cardBg} rounded-2xl p-8 ${themeClasses.border} border`}>
-            <h2 className={`text-2xl font-bold ${themeClasses.text} mb-6`}>Settings</h2>
-            <p className={themeClasses.textSecondary}>Settings panel coming soon...</p>
-          </div>
-        );
+        return <Settings isDarkMode={isDarkMode} themeClasses={themeClasses} />;
       default:
         return null;
     }

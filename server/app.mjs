@@ -4,6 +4,11 @@ import cors from 'cors';
 import adminAuth from './routes/adminAuth.mjs';
 import approveToken from './routes/approveToken.mjs';
 import adminMiddleware from './middleware/adminMiddleware.mjs';
+import users from './routes/users.mjs';
+import videos from './routes/videos.mjs';
+import projects from './routes/projects.mjs';
+import dashboard from './routes/dashboard.mjs';
+import settings from './routes/settings.mjs';
 import { connectToDatabase } from "./db/conn.mjs";
 import path from "path";
 import { createServer } from "http";
@@ -63,6 +68,11 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/auth/admin', adminAuth);
 app.use('/api/auth', approveToken);
+app.use('/api/users', users);
+app.use('/api/videos', videos);
+app.use('/api/projects', projects);
+app.use('/api/dashboard', dashboard);
+app.use('/api/settings', settings);
 
 // Serve static files from the React app in production
 // if (process.env.NODE_ENV === 'production') {
