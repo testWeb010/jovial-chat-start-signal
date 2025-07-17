@@ -50,10 +50,11 @@ const ProjectManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; 
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const data = await apiRequestJson(`${apiBaseUrl}/api/projects`) as Project[];
-      setProjects(data);
+      const data = await apiRequestJson('http://localhost:3001/api/projects');
+      setProjects(Array.isArray(data) ? data : []);
     } catch (err) {
+      console.error('Fetch projects error:', err);
+      setProjects([]);
       setError(err instanceof Error ? err.message : 'Failed to fetch projects');
     } finally {
       setLoading(false);
@@ -139,12 +140,12 @@ const ProjectManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; 
     }
   };
 
-  const filteredProjects = projects.filter(project => {
+  const filteredProjects = Array.isArray(projects) ? projects.filter(project => {
     const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          project.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || project.category === categoryFilter;
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
   const categories = ['Branded Content', 'Celebrity Engagement', 'Sponsorships', 'Intellectual Properties'];
 

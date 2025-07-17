@@ -35,35 +35,35 @@ const Dashboard = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; themeCla
   const stats = [
     {
       title: 'Total Videos',
-      value: '156',
+      value: dashboardData.totalVideos.toString(),
       change: '+12%',
       icon: Video,
       gradient: 'from-cyan-500 to-blue-600'
     },
     {
       title: 'Total Projects',
-      value: '89',
+      value: dashboardData.totalProjects.toString(),
       change: '+8%',
       icon: Image,
       gradient: 'from-pink-500 to-purple-600'
     },
     {
       title: 'Total Views',
-      value: '2.4M',
+      value: dashboardData.totalViews.toLocaleString(),
       change: '+24%',
       icon: Eye,
       gradient: 'from-green-500 to-emerald-600'
     },
     {
-      title: 'Engagement',
-      value: '89.2%',
+      title: 'Total Users',
+      value: dashboardData.totalUsers.toString(),
       change: '+5%',
-      icon: Heart,
+      icon: Users,
       gradient: 'from-orange-500 to-red-600'
     }
   ];
 
-  const recentActivity = [
+  const recentActivity = dashboardData.recentActivity.length > 0 ? dashboardData.recentActivity : [
     { type: 'video', title: 'New video added: "Brand Campaign 2024"', time: '2 hours ago' },
     { type: 'project', title: 'Project updated: "Celebrity Collaboration"', time: '4 hours ago' },
     { type: 'video', title: 'Video published: "Sports Sponsorship"', time: '6 hours ago' },
@@ -78,13 +78,7 @@ const Dashboard = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; themeCla
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const token = localStorage.getItem('authToken');
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
-      const data = await apiRequestJson(`${apiBaseUrl}/api/admin/dashboard`, { headers });
+      const data = await apiRequestJson('http://localhost:3001/api/admin/dashboard');
       setDashboardData(data as DashboardData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');

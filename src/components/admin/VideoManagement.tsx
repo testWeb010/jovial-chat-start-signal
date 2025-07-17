@@ -47,10 +47,11 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      const data = await apiRequestJson(`${apiBaseUrl}/api/videos`) as Video[];
-      setVideos(data);
+      const data = await apiRequestJson('http://localhost:3001/api/videos');
+      setVideos(Array.isArray(data) ? data : []);
     } catch (err) {
+      console.error('Fetch videos error:', err);
+      setVideos([]);
       setError(err instanceof Error ? err.message : 'Failed to fetch videos');
     } finally {
       setLoading(false);
@@ -87,12 +88,12 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
     }
   };
 
-  const filteredVideos = videos.filter(video => {
+  const filteredVideos = Array.isArray(videos) ? videos.filter(video => {
     const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          video.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || video.category === categoryFilter;
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
   const sortedVideos = [...filteredVideos].sort((a, b) => {
     if (dateSort === 'newest') {

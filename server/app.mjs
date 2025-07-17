@@ -71,7 +71,7 @@ app.use('/api/auth', approveToken);
 app.use('/api/users', users);
 app.use('/api/videos', videos);
 app.use('/api/projects', projects);
-app.use('/api/dashboard', dashboard);
+app.use('/api/admin/dashboard', dashboard);
 app.use('/api/settings', settings);
 
 // Serve static files from the React app in production
