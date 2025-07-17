@@ -1,49 +1,83 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Play, ChevronLeft, ChevronRight, ListFilter, MoreVertical, Share2, Copy } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, Play, ChevronLeft, ChevronRight, ListFilter, MoreVertical, Share2, Copy, AlertCircle, Loader } from 'lucide-react';
 import { formatTimeAgo } from '@/lib/utils';
+import { apiRequestJson } from '@/utils/api';
 
-// Dummy Data
-const allVideos = [
-  { id: '0P8ftvWlCUQ', title: 'Corporate Showcase 2024', category: 'Corporate', date: '2024-07-10', views: 1200000, uploader: 'AcrossMedia' },
-  { id: '3tmd-ClpJxA', title: 'Brand Story: Innovate Inc.', category: 'Branding', date: '2024-06-22', views: 850000, uploader: 'ClientFilms' },
-  { id: 'N5vJ1XN72e4', title: 'Celebrity Endorsement: The Future', category: 'Celebrity', date: '2024-05-15', views: 2300000, uploader: 'StarPower' },
-  { id: '7k_sE1-u2cs', title: 'Product Launch: The Quantum Leap', category: 'Corporate', date: '2024-04-30', views: 980000, uploader: 'AcrossMedia' },
-  { id: 'O_9V_d_I7ls', title: 'Behind the Scenes: Ad Campaign', category: 'Branding', date: '2024-03-18', views: 560000, uploader: 'ClientFilms' },
-  { id: 'dQw4w9WgXcQ', title: 'A Musical Journey with a Star', category: 'Celebrity', date: '2024-02-29', views: 3100000, uploader: 'StarPower' },
-  { id: 'h_L4Rixya64', title: 'Annual Summit Highlights', category: 'Corporate', date: '2024-01-20', views: 720000, uploader: 'AcrossMedia' },
-  { id: 'M7lc1UVf-VE', title: 'The Art of Visual Storytelling', category: 'Branding', date: '2023-12-11', views: 1500000, uploader: 'ClientFilms' },
-  { id: 'another-video-1', title: 'Marketing Success Stories', category: 'Branding', date: '2023-11-05', views: 450000, uploader: 'ClientFilms' },
-  { id: 'another-video-2', title: 'Tech Conference Opening', category: 'Corporate', date: '2023-10-01', views: 680000, uploader: 'AcrossMedia' },
-];
+interface Video {
+  _id: string;
+  title: string;
+  description: string;
+  url: string;
+  category: string;
+  thumbnailUrl?: string;
+  views: number;
+  status: 'active' | 'draft';
+  createdAt: string;
+  updatedAt: string;
+}
 
 const categories = ['All', 'Corporate', 'Branding', 'Celebrity'];
 const ITEMS_PER_PAGE = 6;
 
 const Videos = () => {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [sortOrder, setSortOrder] = useState('newest');
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [openShareMenu, setOpenShareMenu] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    fetchVideos();
+  }, []);
+
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await apiRequestJson<{
+        videos: Video[];
+        pagination: { page: number; limit: number; total: number; totalPages: number };
+      }>('/api/videos');
+      
+      setVideos(response.videos || []);
+    } catch (err) {
+      console.error('Failed to fetch videos:', err);
+      setError('Failed to load videos. Please try again later.');
+      setVideos([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getVideoId = (url: string): string => {
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : '';
+  };
+
   const filteredAndSortedVideos = useMemo(() => {
-    let videos = allVideos.filter(video => {
+    if (!Array.isArray(videos)) return [];
+    
+    let filtered = videos.filter(video => {
       const matchesCategory = activeCategory === 'All' || video.category === activeCategory;
-      const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesCategory && matchesSearch;
+      const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           video.description.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch && video.status === 'active';
     });
 
-    videos.sort((a, b) => {
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
       return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
-    return videos;
-  }, [searchTerm, activeCategory, sortOrder]);
+    return filtered;
+  }, [videos, searchTerm, activeCategory, sortOrder]);
 
   const paginatedVideos = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -64,6 +98,21 @@ const Videos = () => {
             Explore our curated collection of branded content, celebrity engagements, and corporate films.
           </p>
         </div>
+
+        {error && (
+          <div className="mb-8 p-4 bg-red-900/20 border border-red-500/50 rounded-xl flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+            <div>
+              <p className="text-red-300">{error}</p>
+              <button 
+                onClick={fetchVideos} 
+                className="text-sm text-red-400 hover:text-red-300 underline mt-1"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Mobile Filter Button */}
@@ -97,7 +146,9 @@ const Videos = () => {
                       }`}>
                       <span>{category}</span>
                       <span className='text-xs bg-gray-700 px-2 py-0.5 rounded-full'>
-                        {category === 'All' ? allVideos.length : allVideos.filter(v => v.category === category).length}
+                        {category === 'All' 
+                          ? videos.filter(v => v.status === 'active').length 
+                          : videos.filter(v => v.category === category && v.status === 'active').length}
                       </span>
                     </button>
                   ))}
@@ -132,64 +183,93 @@ const Videos = () => {
             </div>
 
             {/* Video Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-12">
-              {paginatedVideos.map(video => (
-                <div key={video.id} className="bg-gray-800/30 p-4 rounded-2xl group transition-all duration-300 hover:bg-gray-800/60 hover:shadow-lg hover:shadow-cyan-500/10">
-                  <div 
-                    className="relative rounded-xl overflow-hidden cursor-pointer mb-4"
-                    onClick={() => setSelectedVideo(video.id)}
-                  >
-                    <img
-                      src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
-                      alt={video.title}
-                      className="w-full h-auto object-cover aspect-video transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <Play size={40} className='text-white drop-shadow-lg' />
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className='flex-1'>
-                      <h3 
-                        className="text-md font-bold text-white leading-snug mb-1 clamp-2-lines cursor-pointer hover:text-cyan-300 transition-colors"
-                        onClick={() => setSelectedVideo(video.id)}
+            {!loading && !error && paginatedVideos.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-12">
+                {paginatedVideos.map(video => {
+                  const videoId = getVideoId(video.url);
+                  return (
+                    <div key={video._id} className="bg-gray-800/30 p-4 rounded-2xl group transition-all duration-300 hover:bg-gray-800/60 hover:shadow-lg hover:shadow-cyan-500/10">
+                      <div 
+                        className="relative rounded-xl overflow-hidden cursor-pointer mb-4"
+                        onClick={() => setSelectedVideo(videoId)}
                       >
-                        {video.title}
-                      </h3>
-                      <p className='text-sm text-gray-400'>{video.uploader}</p>
-                      <p className='text-sm text-gray-400'>
-                        {`${(video.views / 1000).toFixed(0)}K views`}
-                        <span className='mx-1'>•</span>
-                        {formatTimeAgo(video.date)}
-                      </p>
-                    </div>
-                    <div className='relative'>
-                      <button onClick={() => setOpenShareMenu(openShareMenu === video.id ? null : video.id)} className='p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-gray-700'>
-                        <MoreVertical size={20} />
-                      </button>
-                      {openShareMenu === video.id && (
-                        <div className='absolute top-full right-0 mt-2 w-40 bg-gray-700 rounded-lg shadow-xl z-10'>
-                          <button 
-                            onClick={() => {
-                              navigator.clipboard.writeText(`https://www.youtube.com/watch?v=${video.id}`);
-                              setCopied(true);
-                              setTimeout(() => setCopied(false), 2000);
-                              setOpenShareMenu(null);
-                            }}
-                            className='w-full flex items-center gap-3 px-4 py-2 text-sm text-left hover:bg-gray-600 rounded-lg'>
-                            {copied ? <><Copy size={16} className='text-green-400' /> Copied!</> : <><Share2 size={16} /> Share</>}
-                          </button>
+                        <img
+                          src={video.thumbnailUrl || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
+                          alt={video.title}
+                          className="w-full h-auto object-cover aspect-video transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=450&fit=crop';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <Play size={40} className='text-white drop-shadow-lg' />
                         </div>
-                      )}
+                      </div>
+                      <div className="flex items-start gap-4">
+                        <div className='flex-1'>
+                          <h3 
+                            className="text-md font-bold text-white leading-snug mb-1 clamp-2-lines cursor-pointer hover:text-cyan-300 transition-colors"
+                            onClick={() => setSelectedVideo(videoId)}
+                          >
+                            {video.title}
+                          </h3>
+                          <p className='text-sm text-gray-400 line-clamp-2 mb-1'>{video.description}</p>
+                          <p className='text-sm text-gray-400'>
+                            {`${(video.views / 1000).toFixed(0)}K views`}
+                            <span className='mx-1'>•</span>
+                            {formatTimeAgo(video.createdAt)}
+                          </p>
+                        </div>
+                        <div className='relative'>
+                          <button onClick={() => setOpenShareMenu(openShareMenu === video._id ? null : video._id)} className='p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-gray-700'>
+                            <MoreVertical size={20} />
+                          </button>
+                          {openShareMenu === video._id && (
+                            <div className='absolute top-full right-0 mt-2 w-40 bg-gray-700 rounded-lg shadow-xl z-10'>
+                              <button 
+                                onClick={() => {
+                                  navigator.clipboard.writeText(video.url);
+                                  setCopied(true);
+                                  setTimeout(() => setCopied(false), 2000);
+                                  setOpenShareMenu(null);
+                                }}
+                                className='w-full flex items-center gap-3 px-4 py-2 text-sm text-left hover:bg-gray-600 rounded-lg'>
+                                {copied ? <><Copy size={16} className='text-green-400' /> Copied!</> : <><Share2 size={16} /> Share</>}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
 
-            {filteredAndSortedVideos.length === 0 && (
-              <div className="text-center py-16 col-span-full">
-                <p className="text-gray-400 text-lg">No videos found. Try a different search or filter.</p>
+            {/* Empty State */}
+            {!loading && !error && paginatedVideos.length === 0 && (
+              <div className="text-center py-16">
+                <div className="w-24 h-24 mx-auto mb-6 bg-gray-800 rounded-full flex items-center justify-center">
+                  <Search className="w-12 h-12 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-300 mb-2">No videos found</h3>
+                <p className="text-gray-400 mb-6">
+                  {searchTerm || activeCategory !== 'All' 
+                    ? "Try adjusting your search or filter criteria" 
+                    : "No videos have been published yet"}
+                </p>
+                {(searchTerm || activeCategory !== 'All') && (
+                  <button 
+                    onClick={() => {
+                      setSearchTerm('');
+                      setActiveCategory('All');
+                      setCurrentPage(1);
+                    }}
+                    className="px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors"
+                  >
+                    Clear filters
+                  </button>
+                )}
               </div>
             )}
 

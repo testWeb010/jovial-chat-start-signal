@@ -5,6 +5,24 @@ import mongoose from 'mongoose';
 
 const ObjectId = mongoose.Types.ObjectId;
 const router = express.Router();
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, JPG, PNG, and GIF are allowed.'));
+    }
+  },
+});
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // Middleware to verify admin access
