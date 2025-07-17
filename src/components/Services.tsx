@@ -1,6 +1,7 @@
 import React from 'react';
 import { Video, Users, Handshake, Lightbulb, ArrowUpRight } from 'lucide-react';
 
+
 const Services = () => {
   const services = [
     {

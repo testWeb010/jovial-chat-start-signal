@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
+
 const LogoutButton: React.FC = () => {
   const navigate = useNavigate();
 

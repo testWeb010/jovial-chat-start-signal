@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, ArrowLeft, Sparkles } from 'lucide-react';
 
+
 const NotFound = () => {
   const navigate = useNavigate();
 

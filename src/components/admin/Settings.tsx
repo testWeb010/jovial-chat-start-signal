@@ -3,6 +3,7 @@ import { Settings as SettingsIcon, User, Save, RefreshCw, AlertCircle, CheckCirc
 import { apiRequestJson } from '../../utils/api';
 import { toast } from 'sonner';
 
+
 interface SiteSettings {
   _id?: string;
   type: string;

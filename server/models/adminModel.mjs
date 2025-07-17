@@ -47,6 +47,7 @@ AdminSchema.pre('save', function(next) {
   next();
 });
 
+
 // Create and export the Admin model as a named export
 const Admin = mongoose.model('admins', AdminSchema);
 

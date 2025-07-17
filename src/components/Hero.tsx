@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Play, ArrowRight, Sparkles } from 'lucide-react';
 import YouTube from 'react-youtube';
 
+
 const Hero = () => {
   const [isPlaying, setIsPlaying] = useState(false);
 

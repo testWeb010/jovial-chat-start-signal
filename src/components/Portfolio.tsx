@@ -7,6 +7,7 @@ import project4 from "@/assets/project4.webp";
 import project5 from "@/assets/project5.webp";
 import project6 from "@/assets/project6.webp";
 
+
 const Portfolio = () => {
   const projects = [
     {

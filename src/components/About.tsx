@@ -1,6 +1,7 @@
 import React from 'react';
 import { Award, Target, Zap, Globe, CheckCircle } from 'lucide-react';
 
+
 const About = () => {
   const values = [
     {

@@ -7,6 +7,7 @@ import Portfolio from '@/components/Portfolio';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 
+
 const Index = () => {
   return (
     <div className="min-h-screen bg-black text-white">

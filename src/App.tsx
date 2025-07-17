@@ -17,6 +17,7 @@ import PendingApproval from './components/auth/PendingApproval';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import NotFound from './pages/NotFound'; // Corrected import path for NotFound component
 
+
 const AppContent = () => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith(import.meta.env.VITE_ADMIN_PATH || '/admin');

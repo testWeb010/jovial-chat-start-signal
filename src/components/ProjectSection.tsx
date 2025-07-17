@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Grid, List, Search, X, ChevronLeft, ChevronRight, Calendar, Eye, Heart, ExternalLink, ZoomIn, Award, Users, Handshake, Lightbulb } from 'lucide-react';
 
+
 const ProjectsSection = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState('grid');

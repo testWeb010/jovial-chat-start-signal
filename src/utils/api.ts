@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 
+
 /**
  * Utility function to make API requests with JSON content type and Authorization header
  * @param url The API endpoint URL

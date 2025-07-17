@@ -2,6 +2,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import sharp from 'sharp';
 import { Readable } from 'stream';
 
+
 // Configure Cloudinary (you'll need to set these environment variables)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

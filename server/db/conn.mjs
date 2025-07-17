@@ -9,7 +9,6 @@ export const connectToDatabase = async () => {
   if (dbInstance) {
     return dbInstance;
   }
-
   try {
     dbInstance = await mongoose.connect(connectionString);
     console.log("MongoDB connected successfully");

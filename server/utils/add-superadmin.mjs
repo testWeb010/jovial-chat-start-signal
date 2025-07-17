@@ -2,6 +2,7 @@ import { MongoClient } from 'mongodb';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 
+
 // Load environment variables
 dotenv.config();
 
