@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Grid, List, Search, X, ChevronLeft, ChevronRight, Calendar, Eye, Heart, ExternalLink, ZoomIn, Award, Users, Handshake, Lightbulb } from 'lucide-react';
+import { apiRequestJson } from '../utils/api';
 
 
 const ProjectsSection = () => {
@@ -11,10 +12,48 @@ const ProjectsSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(false);
   const projectsPerPage = 12;
 
+  // Fetch projects from API
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const response = await apiRequestJson('http://localhost:3001/api/projects') as any;
+        const apiProjects = Array.isArray(response?.projects) ? response.projects : (Array.isArray(response) ? response : []);
+        
+        // Convert API projects to display format
+        const formattedProjects = apiProjects.map((project: any) => ({
+          id: project._id,
+          title: project.title,
+          category: project.category,
+          year: new Date(project.createdAt).getFullYear().toString(),
+          status: project.status,
+          client: project.client,
+          views: "2.5M", // Default view count
+          likes: "89K", // Default like count
+          image: project.image,
+          description: project.description,
+          tags: project.keywords || []
+        }));
+        
+        // Combine with static projects
+        setProjects([...formattedProjects, ...staticProjects]);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        setProjects(staticProjects);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
   // Sample projects data
-  const projects = [
+  const staticProjects = [
     {
       id: 1,
       title: "Luxury Fashion Brand Campaign 2024",

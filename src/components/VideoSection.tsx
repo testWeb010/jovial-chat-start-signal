@@ -1,10 +1,24 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Play, Filter, Grid3X3, List, Clock, Calendar, TrendingUp, Eye, MoreVertical, Share2, Copy, Users, Star, ChevronLeft, ChevronRight, ListFilter, CheckCircle, Dot, X } from 'lucide-react';
 import { formatTimeAgo } from '@/lib/utils';
+import { apiRequestJson } from '../utils/api';
 
+interface Video {
+  _id: string;
+  title: string;
+  url: string;
+  description: string;
+  keywords: string[];
+  category: string;
+  duration?: string;
+  views: string;
+  createdAt: string;
+  status: string;
+  thumbnail?: string;
+}
 
-// Enhanced Dummy Data
-const allVideos = [
+// Enhanced Dummy Data with dynamic content support
+const staticVideos = [
   { 
     id: '0P8ftvWlCUQ', 
     title: 'Corporate Showcase 2024: Building Tomorrow', 
@@ -146,12 +160,55 @@ const VideoSection = () => {
   const [copied, setCopied] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [allVideos, setAllVideos] = useState<any[]>(staticVideos);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch videos from API on component mount
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        setLoading(true);
+        const response = await apiRequestJson('http://localhost:3001/api/videos') as any;
+        const apiVideos = Array.isArray(response?.videos) ? response.videos : (Array.isArray(response) ? response : []);
+        
+        // Convert API videos to display format
+        const formattedVideos = apiVideos.map((video: Video) => ({
+          id: video._id,
+          title: video.title,
+          category: video.category,
+          date: video.createdAt.split('T')[0],
+          views: parseInt(video.views) || 0,
+          uploader: 'AcrossMedia',
+          duration: video.duration || 'N/A',
+          thumbnail: video.thumbnail || `https://img.youtube.com/vi/${extractVideoId(video.url)}/hqdefault.jpg`,
+          verified: true,
+          description: video.description,
+          url: video.url
+        }));
+        
+        // Combine with static videos
+        setAllVideos([...formattedVideos, ...staticVideos]);
+      } catch (error) {
+        console.error('Error fetching videos:', error);
+        setAllVideos(staticVideos);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, []);
+
+  const extractVideoId = (url: string) => {
+    const match = url?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    return match ? match[1] : '';
+  };
 
   const filteredAndSortedVideos = useMemo(() => {
     let videos = allVideos.filter(video => {
       const matchesCategory = activeCategory === 'All' || video.category === activeCategory;
       const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           video.uploader.toLowerCase().includes(searchTerm.toLowerCase());
+                           (video.uploader && video.uploader.toLowerCase().includes(searchTerm.toLowerCase()));
       return matchesCategory && matchesSearch;
     });
 
@@ -168,7 +225,7 @@ const VideoSection = () => {
     });
 
     return videos;
-  }, [searchTerm, activeCategory, sortOrder]);
+  }, [searchTerm, activeCategory, sortOrder, allVideos]);
 
   const paginatedVideos = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -349,7 +406,7 @@ const VideoSection = () => {
               {/* Results Count */}
               <div className="mb-8 flex items-center justify-between">
                 <p className="text-gray-400">
-                  Showing {filteredAndSortedVideos.length} video{filteredAndSortedVideos.length !== 1 ? 's' : ''}
+                  {loading ? 'Loading videos...' : `Showing ${filteredAndSortedVideos.length} video${filteredAndSortedVideos.length !== 1 ? 's' : ''}`}
                   {activeCategory !== 'All' && ` in ${activeCategory}`}
                 </p>
                 
@@ -377,126 +434,143 @@ const VideoSection = () => {
               </div>
 
               {/* Video Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
-                {paginatedVideos.map(video => (
-                  <div key={video.id} className="group relative">
-                    {/* Glowing effect */}
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-pink-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-1000"></div>
-                    
-                    <div className="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-500 backdrop-blur-sm">
-                      {/* Thumbnail */}
-                      <div 
-                        className="relative aspect-video cursor-pointer overflow-hidden"
-                        onClick={() => setSelectedVideo(video.id)}
-                      >
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          onError={(e) => {
-                            e.currentTarget.src = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
-                          }}
-                        />
-                        
-                        {/* Duration Badge */}
-                        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded font-mono">
-                          {video.duration}
-                        </div>
-                        
-                        {/* Play Button Overlay */}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-                          <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110">
-                            <Play size={24} className="text-white ml-1" fill="white" />
-                          </div>
-                        </div>
-                        
-                        {/* Category Badge */}
-                        <div className="absolute top-3 left-3">
-                          <span className="bg-gradient-to-r from-cyan-500 to-pink-600 text-white text-xs px-2 py-1 rounded-full font-medium">
-                            {video.category}
-                          </span>
+              {loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-gray-800 rounded-2xl overflow-hidden">
+                        <div className="aspect-video bg-gray-700"></div>
+                        <div className="p-4 space-y-3">
+                          <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-700 rounded w-1/2"></div>
+                          <div className="h-3 bg-gray-700 rounded w-1/4"></div>
                         </div>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+                  {paginatedVideos.map(video => (
+                    <div key={video.id} className="group relative">
+                      {/* Glowing effect */}
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-pink-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-1000"></div>
                       
-                      {/* Video Info */}
-                      <div className="p-4">
-                        <div className="flex items-start gap-3">
-                          {/* Channel Avatar */}
-                          <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Users size={16} className="text-white" />
+                      <div className="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-500 backdrop-blur-sm">
+                        {/* Thumbnail */}
+                        <div 
+                          className="relative aspect-video cursor-pointer overflow-hidden"
+                          onClick={() => setSelectedVideo(video.id)}
+                        >
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            onError={(e) => {
+                              e.currentTarget.src = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
+                            }}
+                          />
+                          
+                          {/* Duration Badge */}
+                          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded font-mono">
+                            {video.duration}
                           </div>
                           
-                          <div className="flex-1 min-w-0">
-                            {/* Title */}
-                            <h3 
-                              className="font-bold text-white text-sm leading-snug mb-1 line-clamp-2 cursor-pointer hover:text-cyan-300 transition-colors group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-cyan-400 group-hover:to-pink-500"
-                              onClick={() => setSelectedVideo(video.id)}
-                              title={video.title}
-                            >
-                              {video.title}
-                            </h3>
+                          {/* Play Button Overlay */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                            <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110">
+                              <Play size={24} className="text-white ml-1" fill="white" />
+                            </div>
+                          </div>
+                          
+                          {/* Category Badge */}
+                          <div className="absolute top-3 left-3">
+                            <span className="bg-gradient-to-r from-cyan-500 to-pink-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                              {video.category}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Video Info */}
+                        <div className="p-4">
+                          <div className="flex items-start gap-3">
+                            {/* Channel Avatar */}
+                            <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Users size={16} className="text-white" />
+                            </div>
                             
-                            {/* Channel Info */}
-                            <div className="flex items-center gap-1 mb-2">
-                              <p className="text-gray-400 text-sm font-medium">{video.uploader}</p>
-                              {video.verified && (
-                                <CheckCircle size={14} className="text-cyan-400" />
+                            <div className="flex-1 min-w-0">
+                              {/* Title */}
+                              <h3 
+                                className="font-bold text-white text-sm leading-snug mb-1 line-clamp-2 cursor-pointer hover:text-cyan-300 transition-colors group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-cyan-400 group-hover:to-pink-500"
+                                onClick={() => setSelectedVideo(video.id)}
+                                title={video.title}
+                              >
+                                {video.title.length > 60 ? `${video.title.substring(0, 60)}...` : video.title}
+                              </h3>
+                              
+                              {/* Channel Info */}
+                              <div className="flex items-center gap-1 mb-2">
+                                <p className="text-gray-400 text-sm font-medium">{video.uploader}</p>
+                                {video.verified && (
+                                  <CheckCircle size={14} className="text-cyan-400" />
+                                )}
+                              </div>
+                              
+                              {/* Stats */}
+                              <div className="flex items-center gap-1 text-gray-400 text-xs">
+                                <Eye size={12} />
+                                <span>{formatViews(video.views)} views</span>
+                                <Dot size={12} />
+                                <span>{formatTimeAgo(video.date)}</span>
+                              </div>
+                            </div>
+                            
+                            {/* Menu Button */}
+                            <div className="relative">
+                              <button 
+                                onClick={() => setOpenShareMenu(openShareMenu === video.id ? null : video.id)}
+                                className="p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-gray-700/50 transition-colors"
+                              >
+                                <MoreVertical size={16} />
+                              </button>
+                              
+                              {openShareMenu === video.id && (
+                                <div className="absolute top-full right-0 mt-2 w-48 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 py-2 z-10">
+                                  <button 
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(`https://www.youtube.com/watch?v=${video.id}`);
+                                      setCopied(true);
+                                      setTimeout(() => setCopied(false), 2000);
+                                      setOpenShareMenu(null);
+                                    }}
+                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors"
+                                  >
+                                    {copied ? (
+                                      <>
+                                        <CheckCircle size={16} className="text-green-400" />
+                                        <span>Copied!</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Share2 size={16} />
+                                        <span>Share video</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
                               )}
                             </div>
-                            
-                            {/* Stats */}
-                            <div className="flex items-center gap-1 text-gray-400 text-xs">
-                              <Eye size={12} />
-                              <span>{formatViews(video.views)} views</span>
-                              <Dot size={12} />
-                              <span>{formatTimeAgo(video.date)}</span>
-                            </div>
-                          </div>
-                          
-                          {/* Menu Button */}
-                          <div className="relative">
-                            <button 
-                              onClick={() => setOpenShareMenu(openShareMenu === video.id ? null : video.id)}
-                              className="p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-gray-700/50 transition-colors"
-                            >
-                              <MoreVertical size={16} />
-                            </button>
-                            
-                            {openShareMenu === video.id && (
-                              <div className="absolute top-full right-0 mt-2 w-48 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 py-2 z-10">
-                                <button 
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(`https://www.youtube.com/watch?v=${video.id}`);
-                                    setCopied(true);
-                                    setTimeout(() => setCopied(false), 2000);
-                                    setOpenShareMenu(null);
-                                  }}
-                                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 transition-colors"
-                                >
-                                  {copied ? (
-                                    <>
-                                      <CheckCircle size={16} className="text-green-400" />
-                                      <span>Copied!</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Share2 size={16} />
-                                      <span>Share video</span>
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {/* No Results */}
-              {filteredAndSortedVideos.length === 0 && (
+              {!loading && filteredAndSortedVideos.length === 0 && (
                 <div className="text-center py-20">
                   <div className="w-24 h-24 bg-gradient-to-r from-cyan-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Search size={32} className="text-white" />

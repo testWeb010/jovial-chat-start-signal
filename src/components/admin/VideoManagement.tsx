@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Video, Edit, Trash2, Eye, Search, Filter, Calendar, Tag, ExternalLink } from 'lucide-react';
+import { Plus, Video, Edit, Trash2, Eye, Search, Filter, Calendar, Tag, ExternalLink, Youtube, Loader2 } from 'lucide-react';
 import { apiRequestJson } from '../../utils/api';
+import { fetchYouTubeVideoData, extractVideoId, getVideoThumbnail } from '../../utils/youtube';
 
 
 interface Video {
@@ -38,8 +39,10 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
     url: '',
     description: '',
     keywords: '',
-    category: 'Branded Content'
+    category: 'Branded Content',
+    thumbnail: ''
   });
+  const [loadingYouTube, setLoadingYouTube] = useState(false);
 
   useEffect(() => {
     fetchVideos();
@@ -59,6 +62,35 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
     }
   };
 
+  const handleYouTubeUrlChange = async (url: string) => {
+    setFormData({...formData, url});
+    
+    if (url && (url.includes('youtube.com') || url.includes('youtu.be'))) {
+      setLoadingYouTube(true);
+      try {
+        const videoId = extractVideoId(url);
+        if (videoId) {
+          const thumbnail = getVideoThumbnail(videoId);
+          const youtubeData = await fetchYouTubeVideoData(url);
+          
+          if (youtubeData) {
+            setFormData(prev => ({
+              ...prev,
+              url,
+              title: youtubeData.title,
+              description: youtubeData.description,
+              thumbnail
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching YouTube data:', error);
+      } finally {
+        setLoadingYouTube(false);
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -68,11 +100,12 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
         url: formData.url,
         description: formData.description,
         keywords: formData.keywords.split(',').map(k => k.trim()),
-        category: formData.category
+        category: formData.category,
+        thumbnail: formData.thumbnail || getVideoThumbnail(extractVideoId(formData.url) || '')
       };
       const data = await apiRequestJson(`${apiBaseUrl}/api/videos`, { method: 'POST', body: JSON.stringify(newVideo) }) as Video;
       setVideos([data, ...videos]);
-      setFormData({ title: '', url: '', description: '', keywords: '', category: 'Branded Content' });
+      setFormData({ title: '', url: '', description: '', keywords: '', category: 'Branded Content', thumbnail: '' });
       setShowAddForm(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save video');
@@ -170,15 +203,36 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
             </div>
 
             <div>
-              <label className={`block text-sm font-semibold ${themeClasses.text} mb-2`}>Video URL</label>
-              <input
-                type="url"
-                value={formData.url}
-                onChange={(e) => setFormData({...formData, url: e.target.value})}
-                className={`w-full px-4 py-3 ${themeClasses.cardBg} ${themeClasses.border} border rounded-xl ${themeClasses.text} focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all`}
-                placeholder="https://www.youtube.com/watch?v=..."
-                required
-              />
+              <label className={`block text-sm font-semibold ${themeClasses.text} mb-2`}>
+                <div className="flex items-center gap-2">
+                  <Youtube size={16} className="text-red-500" />
+                  YouTube Video URL
+                </div>
+              </label>
+              <div className="relative">
+                <input
+                  type="url"
+                  value={formData.url}
+                  onChange={(e) => handleYouTubeUrlChange(e.target.value)}
+                  className={`w-full px-4 py-3 ${themeClasses.cardBg} ${themeClasses.border} border rounded-xl ${themeClasses.text} focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all pr-12`}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  required
+                />
+                {loadingYouTube && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <Loader2 size={20} className="animate-spin text-cyan-500" />
+                  </div>
+                )}
+              </div>
+              {formData.thumbnail && (
+                <div className="mt-3">
+                  <img 
+                    src={formData.thumbnail} 
+                    alt="Video thumbnail" 
+                    className="w-32 h-18 object-cover rounded-lg border border-gray-600"
+                  />
+                </div>
+              )}
             </div>
 
             <div>
