@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { getDb } from "../db/conn.mjs";
 import mongoose from 'mongoose';
+import multer from 'multer';
 
 const ObjectId = mongoose.Types.ObjectId;
 const router = express.Router();

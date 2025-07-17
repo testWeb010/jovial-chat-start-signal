@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Play, ArrowRight, Sparkles } from 'lucide-react';
 import YouTube from 'react-youtube';
-import heroVideo from '../assets/hero-video.jpg';
 
 const Hero = () => {
   const [isPlaying, setIsPlaying] = useState(false);

@@ -19,7 +19,7 @@ const LogoutButton: React.FC = () => {
         throw new Error(`Backend logout failed with status: ${response.status}`);
       }
     } catch (error) {
-      // Silently handle error since we can't do much client-side
+      console.error('Error during backend logout:', error);
     }
     
     // Clear local storage regardless of backend call result

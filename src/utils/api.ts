@@ -10,7 +10,7 @@ export const apiRequestJson = async <T>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> => {
-  const token = Cookies.get('auth_token');
+  const token = localStorage.getItem('auth_token');
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -20,6 +20,7 @@ export const apiRequestJson = async <T>(
   const response = await fetch(url, {
     ...options,
     headers,
+    credentials: 'include',
   });
 
   if (!response.ok) {

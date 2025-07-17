@@ -15,6 +15,7 @@ import Signup from './components/auth/Signup';
 import ForgotPassword from './components/auth/ForgotPassword';
 import PendingApproval from './components/auth/PendingApproval';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import NotFound from './pages/NotFound'; // Corrected import path for NotFound component
 
 const AppContent = () => {
   const location = useLocation();
@@ -44,6 +45,8 @@ const AppContent = () => {
             <AdminPanel />
           </ProtectedRoute>
         } />
+        // Catch-all route for 404 Not Found
+        <Route path="*" element={<NotFound />} />
       </Routes>
       {!isAdminPage && <Footer />}
     </div>
