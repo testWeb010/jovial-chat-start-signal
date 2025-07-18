@@ -15,7 +15,7 @@ const ProjectsSection = () => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const projectsPerPage = 12;
 
   // Fetch projects from API
@@ -33,19 +33,18 @@ const ProjectsSection = () => {
           category: project.category,
           year: new Date(project.createdAt).getFullYear().toString(),
           status: project.status,
-          client: project.client,
+          client: project.client || 'AcrossMedia Client',
           views: "2.5M", // Default view count
           likes: "89K", // Default like count
-          image: project.image,
+          image: project.image, // Cloudinary URL already optimized
           description: project.description,
           tags: project.keywords || []
         }));
         
-        // Combine with static projects
-        setProjects([...formattedProjects, ...staticProjects]);
+        setProjects(formattedProjects);
       } catch (error) {
         console.error('Error fetching projects:', error);
-        setProjects(staticProjects);
+        setProjects([]); // Show empty state instead of static projects
       } finally {
         setLoading(false);
       }
@@ -53,218 +52,6 @@ const ProjectsSection = () => {
 
     fetchProjects();
   }, []);
-
-  // Sample projects data
-  const staticProjects = [
-    {
-      id: 1,
-      title: "Luxury Fashion Brand Campaign 2024",
-      category: "Branded Content",
-      year: "2024",
-      status: "completed",
-      client: "Premium Fashion House",
-      views: "2.5M",
-      likes: "89K",
-      image: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Revolutionary luxury fashion campaign featuring top celebrities and innovative storytelling techniques.",
-      tags: ["Fashion", "Luxury", "Celebrity", "Campaign"]
-    },
-    {
-      id: 2,
-      title: "Celebrity Chef Collaboration Series",
-      category: "Celebrity Engagement",
-      year: "2024",
-      status: "ongoing",
-      client: "Culinary Network",
-      views: "1.8M",
-      likes: "67K",
-      image: "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Exclusive culinary collaboration featuring renowned celebrity chefs in premium content creation.",
-      tags: ["Celebrity", "Culinary", "Content", "Series"]
-    },
-    {
-      id: 3,
-      title: "Major Sports Event Sponsorship",
-      category: "Sponsorships",
-      year: "2023",
-      status: "completed",
-      client: "Sports Broadcasting Corp",
-      views: "4.2M",
-      likes: "156K",
-      image: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Comprehensive sports event sponsorship with nationwide coverage and brand integration.",
-      tags: ["Sports", "Sponsorship", "Broadcasting", "Events"]
-    },
-    {
-      id: 4,
-      title: "Original Web Series Production",
-      category: "Intellectual Properties",
-      year: "2024",
-      status: "completed",
-      client: "Streaming Platform",
-      views: "6.8M",
-      likes: "234K",
-      image: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Created and produced original IP series with global distribution and critical acclaim.",
-      tags: ["Original", "Series", "Production", "Streaming"]
-    },
-    {
-      id: 5,
-      title: "Tech Innovation Brand Launch",
-      category: "Branded Content",
-      year: "2023",
-      status: "completed",
-      client: "Tech Innovators Inc",
-      views: "1.2M",
-      likes: "45K",
-      image: "https://images.pexels.com/photos/3184293/pexels-photo-3184293.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Innovative tech product launch campaign with interactive digital experiences.",
-      tags: ["Technology", "Innovation", "Launch", "Digital"]
-    },
-    {
-      id: 6,
-      title: "Influencer Network Showcase",
-      category: "Celebrity Engagement",
-      year: "2023",
-      status: "completed",
-      client: "Social Media Agency",
-      views: "3.1M",
-      likes: "112K",
-      image: "https://images.pexels.com/photos/3184294/pexels-photo-3184294.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Comprehensive showcase of our extensive influencer network and collaboration capabilities.",
-      tags: ["Influencer", "Social Media", "Network", "Collaboration"]
-    },
-    {
-      id: 7,
-      title: "Entertainment Awards Partnership",
-      category: "Sponsorships",
-      year: "2024",
-      status: "ongoing",
-      client: "Awards Committee",
-      views: "5.3M",
-      likes: "198K",
-      image: "https://images.pexels.com/photos/3184295/pexels-photo-3184295.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Premium entertainment awards ceremony sponsorship with exclusive content creation.",
-      tags: ["Awards", "Entertainment", "Partnership", "Premium"]
-    },
-    {
-      id: 8,
-      title: "Documentary Film Production",
-      category: "Intellectual Properties",
-      year: "2023",
-      status: "completed",
-      client: "Documentary Network",
-      views: "2.7M",
-      likes: "89K",
-      image: "https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Award-winning documentary production with international distribution and recognition.",
-      tags: ["Documentary", "Film", "Production", "Award-winning"]
-    },
-    {
-      id: 9,
-      title: "Global Brand Integration Campaign",
-      category: "Branded Content",
-      year: "2024",
-      status: "completed",
-      client: "Global Corporation",
-      views: "3.8M",
-      likes: "134K",
-      image: "https://images.pexels.com/photos/3184297/pexels-photo-3184297.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Multi-platform global brand integration campaign with seamless content distribution.",
-      tags: ["Global", "Integration", "Multi-platform", "Brand"]
-    },
-    {
-      id: 10,
-      title: "Music Festival Activation",
-      category: "Sponsorships",
-      year: "2023",
-      status: "completed",
-      client: "Music Festival Org",
-      views: "4.5M",
-      likes: "167K",
-      image: "https://images.pexels.com/photos/3184298/pexels-photo-3184298.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Major music festival partnership with immersive brand activations and experiences.",
-      tags: ["Music", "Festival", "Activation", "Experience"]
-    },
-    {
-      id: 11,
-      title: "Celebrity Fashion Collaboration",
-      category: "Celebrity Engagement",
-      year: "2024",
-      status: "ongoing",
-      client: "Fashion Brand",
-      views: "2.9M",
-      likes: "103K",
-      image: "https://images.pexels.com/photos/3184299/pexels-photo-3184299.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Exclusive fashion collaboration with A-list celebrities and premium brand partnerships.",
-      tags: ["Fashion", "Celebrity", "Collaboration", "Premium"]
-    },
-    {
-      id: 12,
-      title: "Interactive Media Experience",
-      category: "Intellectual Properties",
-      year: "2024",
-      status: "completed",
-      client: "Media Innovation Lab",
-      views: "1.9M",
-      likes: "72K",
-      image: "https://images.pexels.com/photos/3184300/pexels-photo-3184300.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Cutting-edge interactive media experience with immersive storytelling and technology.",
-      tags: ["Interactive", "Innovation", "Technology", "Experience"]
-    },
-    {
-      id: 13,
-      title: "Automotive Brand Campaign",
-      category: "Branded Content",
-      year: "2023",
-      status: "completed",
-      client: "Luxury Auto Brand",
-      views: "3.2M",
-      likes: "118K",
-      image: "https://images.pexels.com/photos/3184301/pexels-photo-3184301.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Premium automotive brand campaign with cinematic storytelling and celebrity endorsements.",
-      tags: ["Automotive", "Luxury", "Cinematic", "Celebrity"]
-    },
-    {
-      id: 14,
-      title: "Sports Celebrity Partnership",
-      category: "Celebrity Engagement",
-      year: "2023",
-      status: "completed",
-      client: "Sports Brand",
-      views: "4.1M",
-      likes: "145K",
-      image: "https://images.pexels.com/photos/3184302/pexels-photo-3184302.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Strategic sports celebrity partnership with comprehensive brand integration and content.",
-      tags: ["Sports", "Celebrity", "Partnership", "Integration"]
-    },
-    {
-      id: 15,
-      title: "Corporate Event Sponsorship",
-      category: "Sponsorships",
-      year: "2024",
-      status: "ongoing",
-      client: "Corporate Events Inc",
-      views: "1.6M",
-      likes: "58K",
-      image: "https://images.pexels.com/photos/3184303/pexels-photo-3184303.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "High-profile corporate event sponsorship with executive networking and brand visibility.",
-      tags: ["Corporate", "Events", "Networking", "Executive"]
-    },
-    {
-      id: 16,
-      title: "Original Podcast Series",
-      category: "Intellectual Properties",
-      year: "2024",
-      status: "ongoing",
-      client: "Podcast Network",
-      views: "2.3M",
-      likes: "84K",
-      image: "https://images.pexels.com/photos/3184304/pexels-photo-3184304.jpeg?auto=compress&cs=tinysrgb&w=800",
-      description: "Original podcast series production with celebrity hosts and premium content distribution.",
-      tags: ["Podcast", "Original", "Celebrity", "Audio"]
-    }
-  ];
 
   const categories = ['all', 'Branded Content', 'Celebrity Engagement', 'Sponsorships', 'Intellectual Properties'];
   const years = ['all', '2024', '2023', '2022'];
@@ -297,7 +84,7 @@ const ProjectsSection = () => {
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          project.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+                         (project.tags && project.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
     return matchesCategory && matchesYear && matchesStatus && matchesSearch;
   });
 
@@ -448,6 +235,9 @@ const ProjectsSection = () => {
               src={project.image} 
               alt={project.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              onError={(e) => {
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=800&auto=format&fit=crop&q=80';
+              }}
             />
             
             {/* Overlay */}
@@ -483,25 +273,25 @@ const ProjectsSection = () => {
         </div>
         
         <div className={`p-6 ${isListView ? 'flex-1' : ''}`}>
-          <h3 className="text-lg font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-cyan-400 group-hover:to-pink-500 transition-all duration-300 line-clamp-2">
-            {project.title}
+          <h3 className="text-lg font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-cyan-400 group-hover:to-pink-500 transition-all duration-300 line-clamp-2" title={project.title}>
+            {project.title.length > 50 ? `${project.title.substring(0, 50)}...` : project.title}
           </h3>
           
           <p className="text-sm text-cyan-400 mb-2 font-medium">{project.client}</p>
           
-          <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-            {project.description}
+          <p className="text-gray-400 text-sm mb-4 line-clamp-3" title={project.description}>
+            {project.description.length > 120 ? `${project.description.substring(0, 120)}...` : project.description}
           </p>
           
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {project.tags.slice(0, 3).map((tag, index) => (
-              <span key={index} className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md">
-                {tag}
+            {project.tags && project.tags.slice(0, 3).map((tag, index) => (
+              <span key={index} className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md truncate max-w-[80px]" title={tag}>
+                {tag.length > 10 ? `${tag.substring(0, 10)}...` : tag}
               </span>
-            ))}
-            {project.tags.length > 3 && (
-              <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md">
+            )) || []}
+            {project.tags && project.tags.length > 3 && (
+              <span className="px-2 py-1 bg-gray-700 text-gray-400 text-xs rounded-md">
                 +{project.tags.length - 3}
               </span>
             )}

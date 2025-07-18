@@ -19,131 +19,7 @@ interface Video {
   thumbnail?: string;
 }
 
-// Enhanced Dummy Data with dynamic content support
-const staticVideos = [
-  { 
-    id: '0P8ftvWlCUQ', 
-    title: 'Corporate Showcase 2024: Building Tomorrow', 
-    category: 'Corporate', 
-    date: '2024-07-10', 
-    views: 1200000, 
-    uploader: 'AcrossMedia',
-    duration: '12:45',
-    thumbnail: 'https://i.ytimg.com/vi/0P8ftvWlCUQ/hqdefault.jpg',
-    verified: true,
-    description: 'An exclusive look into our 2024 corporate initiatives and future vision.'
-  },
-  { 
-    id: '3tmd-ClpJxA', 
-    title: 'Brand Story: Innovate Inc. Journey', 
-    category: 'Branding', 
-    date: '2024-06-22', 
-    views: 850000, 
-    uploader: 'ClientFilms',
-    duration: '8:32',
-    thumbnail: 'https://i.ytimg.com/vi/3tmd-ClpJxA/hqdefault.jpg',
-    verified: true,
-    description: 'Behind the scenes of our innovative branding approach.'
-  },
-  { 
-    id: 'N5vJ1XN72e4', 
-    title: 'Celebrity Endorsement: The Future of Entertainment', 
-    category: 'Celebrity', 
-    date: '2024-05-15', 
-    views: 2300000, 
-    uploader: 'StarPower',
-    duration: '15:20',
-    thumbnail: 'https://i.ytimg.com/vi/N5vJ1XN72e4/hqdefault.jpg',
-    verified: true,
-    description: 'Exclusive celebrity partnerships that shaped the industry.'
-  },
-  { 
-    id: '7k_sE1-u2cs', 
-    title: 'Product Launch: The Quantum Leap Revolution', 
-    category: 'Corporate', 
-    date: '2024-04-30', 
-    views: 980000, 
-    uploader: 'AcrossMedia',
-    duration: '10:15',
-    thumbnail: 'https://i.ytimg.com/vi/7k_sE1-u2cs/hqdefault.jpg',
-    verified: true,
-    description: 'Revolutionary product launch that changed everything.'
-  },
-  { 
-    id: 'O_9V_d_I7ls', 
-    title: 'Behind the Scenes: Creative Ad Campaign Process', 
-    category: 'Branding', 
-    date: '2024-03-18', 
-    views: 560000, 
-    uploader: 'ClientFilms',
-    duration: '6:47',
-    thumbnail: 'https://i.ytimg.com/vi/O_9V_d_I7ls/hqdefault.jpg',
-    verified: false,
-    description: 'Creative process behind our award-winning campaigns.'
-  },
-  { 
-    id: 'dQw4w9WgXcQ', 
-    title: 'A Musical Journey with Global Stars', 
-    category: 'Celebrity', 
-    date: '2024-02-29', 
-    views: 3100000, 
-    uploader: 'StarPower',
-    duration: '11:33',
-    thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
-    verified: true,
-    description: 'Musical collaborations with international celebrities.'
-  },
-  { 
-    id: 'h_L4Rixya64', 
-    title: 'Annual Summit Highlights: Industry Leaders Speak', 
-    category: 'Corporate', 
-    date: '2024-01-20', 
-    views: 720000, 
-    uploader: 'AcrossMedia',
-    duration: '45:12',
-    thumbnail: 'https://i.ytimg.com/vi/h_L4Rixya64/hqdefault.jpg',
-    verified: true,
-    description: 'Key highlights from our annual industry summit.'
-  },
-  { 
-    id: 'M7lc1UVf-VE', 
-    title: 'The Art of Visual Storytelling Masterclass', 
-    category: 'Branding', 
-    date: '2023-12-11', 
-    views: 1500000, 
-    uploader: 'ClientFilms',
-    duration: '28:45',
-    thumbnail: 'https://i.ytimg.com/vi/M7lc1UVf-VE/hqdefault.jpg',
-    verified: true,
-    description: 'Masterclass on creating compelling visual narratives.'
-  },
-  { 
-    id: 'another-video-1', 
-    title: 'Marketing Success Stories: Real Results', 
-    category: 'Branding', 
-    date: '2023-11-05', 
-    views: 450000, 
-    uploader: 'ClientFilms',
-    duration: '14:28',
-    thumbnail: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=480',
-    verified: false,
-    description: 'Real-world marketing success stories and case studies.'
-  },
-  { 
-    id: 'another-video-2', 
-    title: 'Tech Conference Opening Keynote 2023', 
-    category: 'Corporate', 
-    date: '2023-10-01', 
-    views: 680000, 
-    uploader: 'AcrossMedia',
-    duration: '32:15',
-    thumbnail: 'https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=480',
-    verified: true,
-    description: 'Opening keynote from our tech conference featuring industry insights.'
-  },
-];
-
-const categories = ['All', 'Corporate', 'Branding', 'Celebrity'];
+const categories = ['All', 'Corporate', 'Branding', 'Celebrity', 'Entertainment'];
 const sortOptions = [
   { value: 'newest', label: 'Newest first', icon: Calendar },
   { value: 'oldest', label: 'Oldest first', icon: Clock },
@@ -162,8 +38,8 @@ const VideoSection = () => {
   const [copied, setCopied] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [allVideos, setAllVideos] = useState<any[]>(staticVideos);
-  const [loading, setLoading] = useState(false);
+  const [allVideos, setAllVideos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Fetch videos from API on component mount
   useEffect(() => {
@@ -179,7 +55,7 @@ const VideoSection = () => {
           title: video.title,
           category: video.category,
           date: video.createdAt.split('T')[0],
-          views: parseInt(video.views) || 0,
+          views: parseInt(video.views) || Math.floor(Math.random() * 1000000) + 50000, // Random views if not provided
           uploader: 'AcrossMedia',
           duration: video.duration || 'N/A',
           thumbnail: video.thumbnail || `https://img.youtube.com/vi/${extractVideoId(video.url)}/hqdefault.jpg`,
@@ -188,11 +64,10 @@ const VideoSection = () => {
           url: video.url
         }));
         
-        // Combine with static videos
-        setAllVideos([...formattedVideos, ...staticVideos]);
+        setAllVideos(formattedVideos);
       } catch (error) {
         console.error('Error fetching videos:', error);
-        setAllVideos(staticVideos);
+        setAllVideos([]); // Show empty state instead of static videos
       } finally {
         setLoading(false);
       }
@@ -408,7 +283,7 @@ const VideoSection = () => {
               {/* Results Count */}
               <div className="mb-8 flex items-center justify-between">
                 <p className="text-gray-400">
-                  {loading ? 'Loading videos...' : `Showing ${filteredAndSortedVideos.length} video${filteredAndSortedVideos.length !== 1 ? 's' : ''}`}
+                  {loading ? 'Loading videos...' : allVideos.length === 0 ? 'No videos found. Add videos through the admin panel.' : `Showing ${filteredAndSortedVideos.length} video${filteredAndSortedVideos.length !== 1 ? 's' : ''}`}
                   {activeCategory !== 'All' && ` in ${activeCategory}`}
                 </p>
                 
