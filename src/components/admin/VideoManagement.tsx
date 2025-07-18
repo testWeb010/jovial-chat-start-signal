@@ -94,23 +94,33 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setLoading(true);
+      
+      // Fetch fresh YouTube data before saving
+      const youtubeData = await fetchYouTubeVideoData(formData.url);
+      
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const newVideo = {
-        title: formData.title,
+        title: youtubeData?.title || formData.title,
         url: formData.url,
-        description: formData.description,
+        description: youtubeData?.description || formData.description,
         keywords: formData.keywords.split(',').map(k => k.trim()).filter(k => k),
         category: formData.category,
-        thumbnail: formData.thumbnail || getVideoThumbnail(extractVideoId(formData.url) || ''),
-        views: '0',
+        thumbnailUrl: youtubeData?.thumbnail || formData.thumbnail || getVideoThumbnail(extractVideoId(formData.url) || ''),
+        views: youtubeData?.views || '0',
+        duration: youtubeData?.duration || 'N/A',
+        channelTitle: youtubeData?.channelTitle || 'Unknown',
         status: 'active'
       };
+      
       const data = await apiRequestJson(`${apiBaseUrl}/api/videos`, { method: 'POST', body: JSON.stringify(newVideo) }) as Video;
       setVideos([data, ...videos]);
       setFormData({ title: '', url: '', description: '', keywords: '', category: 'Branded Content', thumbnail: '' });
       setShowAddForm(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save video');
+    } finally {
+      setLoading(false);
     }
   };
 

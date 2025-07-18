@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Play, ChevronLeft, ChevronRight, ListFilter, MoreVertical, Share2, Copy, AlertCircle, Loader } from 'lucide-react';
 import { formatTimeAgo } from '@/lib/utils';
 import { apiRequestJson } from '@/utils/api';
-
+import { fetchYouTubeVideoData, extractVideoId, formatViews } from '@/utils/youtube';
 
 interface Video {
   _id: string;
@@ -11,7 +11,9 @@ interface Video {
   url: string;
   category: string;
   thumbnailUrl?: string;
-  views: number;
+  views: string;
+  duration?: string;
+  channelTitle?: string;
   status: 'active' | 'draft';
   createdAt: string;
   updatedAt: string;
@@ -46,7 +48,33 @@ const Videos = () => {
         pagination: { page: number; limit: number; total: number; totalPages: number };
       }>('/api/videos');
       
-      setVideos(response.videos || []);
+      // Enhance videos with YouTube data
+      const enhancedVideos = await Promise.all(
+        (response.videos || []).map(async (video) => {
+          try {
+            const youtubeData = await fetchYouTubeVideoData(video.url);
+            return {
+              ...video,
+              title: youtubeData?.title || video.title,
+              description: youtubeData?.description || video.description,
+              thumbnailUrl: youtubeData?.thumbnail || video.thumbnailUrl,
+              views: youtubeData?.views || '0',
+              duration: youtubeData?.duration || 'N/A',
+              channelTitle: youtubeData?.channelTitle || 'Unknown'
+            };
+          } catch (error) {
+            console.error('Error fetching YouTube data for video:', video._id, error);
+            return {
+              ...video,
+              views: '0',
+              duration: 'N/A',
+              channelTitle: 'Unknown'
+            };
+          }
+        })
+      );
+      
+      setVideos(enhancedVideos);
     } catch (err) {
       console.error('Failed to fetch videos:', err);
       setError('Failed to load videos. Please try again later.');
@@ -57,8 +85,7 @@ const Videos = () => {
   };
 
   const getVideoId = (url: string): string => {
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-    return match ? match[1] : '';
+    return extractVideoId(url) || '';
   };
 
   const filteredAndSortedVideos = useMemo(() => {
@@ -81,10 +108,6 @@ const Videos = () => {
   }, [videos, searchTerm, activeCategory, sortOrder]);
 
   const paginatedVideos = useMemo(() => {
-    // If 6 or fewer videos, show all without pagination
-    if (filteredAndSortedVideos.length <= 6) {
-      return filteredAndSortedVideos;
-    }
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredAndSortedVideos.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredAndSortedVideos, currentPage]);
@@ -120,8 +143,8 @@ const Videos = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Mobile Filter Button - Only show if there are multiple videos */}
-          {filteredAndSortedVideos.length > 6 && (
+          {/* Mobile Filter Button - Only show if there are videos */}
+          {videos.length > 0 && (
             <div className="lg:hidden mb-4">
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -133,8 +156,8 @@ const Videos = () => {
             </div>
           )}
 
-          {/* Sidebar - Only show if there are multiple videos */}
-          {filteredAndSortedVideos.length > 6 && (
+          {/* Sidebar - Only show if there are videos */}
+          {videos.length > 0 && (
             <aside className={`lg:col-span-1 space-y-8 ${isFilterOpen ? 'block' : 'hidden'} lg:block`}>
             <div className="p-6 bg-gray-800/50 border border-gray-700 rounded-2xl">
               <h3 className="text-xl font-bold mb-6">Filters</h3>
@@ -178,9 +201,9 @@ const Videos = () => {
           )}
 
           {/* Main Content */}
-          <main className={`${filteredAndSortedVideos.length > 6 ? 'lg:col-span-3' : 'lg:col-span-4'}`}>
-            {/* Search Bar - Only show if there are multiple videos */}
-            {filteredAndSortedVideos.length > 6 && (
+          <main className={`${videos.length > 0 ? 'lg:col-span-3' : 'lg:col-span-4'}`}>
+            {/* Search Bar - Only show if there are videos */}
+            {videos.length > 0 && (
               <div className="relative mb-8">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
@@ -234,18 +257,21 @@ const Videos = () => {
                       </div>
                       <div className="flex items-start gap-4">
                         <div className='flex-1'>
-                          <h3 
+                           <h3 
                             className="text-md font-bold text-white leading-snug mb-1 clamp-2-lines cursor-pointer hover:text-cyan-300 transition-colors"
                             onClick={() => setSelectedVideo(videoId)}
                           >
                             {video.title}
                           </h3>
-                          <p className='text-sm text-gray-400 line-clamp-2 mb-1'>{video.description}</p>
-                          <p className='text-sm text-gray-400'>
-                            {typeof video.views === 'number' ? `${(video.views / 1000).toFixed(0)}K views` : `${video.views} views`}
-                            <span className='mx-1'>•</span>
-                            {formatTimeAgo(video.createdAt)}
-                          </p>
+                          <p className='text-xs text-gray-500 mb-1'>{video.channelTitle || 'AcrossMedia'}</p>
+                          <p className='text-sm text-gray-400 line-clamp-2 mb-2'>{video.description}</p>
+                          <div className='flex items-center gap-2 text-xs text-gray-400'>
+                            <span>{video.views} views</span>
+                            <span>•</span>
+                            <span>{video.duration || 'N/A'}</span>
+                            <span>•</span>
+                            <span>{formatTimeAgo(video.createdAt)}</span>
+                          </div>
                         </div>
                         <div className='relative'>
                           <button onClick={() => setOpenShareMenu(openShareMenu === video._id ? null : video._id)} className='p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-gray-700'>
@@ -300,8 +326,8 @@ const Videos = () => {
               </div>
             )}
 
-            {/* Pagination - Only show if there are multiple pages and more than 6 videos */}
-            {totalPages > 1 && filteredAndSortedVideos.length > 6 && (
+            {/* Pagination - Only show if there are multiple pages */}
+            {totalPages > 1 && (
               <div className="mt-12 flex justify-center items-center gap-4">
                 <button 
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
