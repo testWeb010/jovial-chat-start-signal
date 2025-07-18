@@ -9,6 +9,7 @@ import videos from './routes/videos.mjs';
 import projects from './routes/projects.mjs';
 import dashboard from './routes/dashboard.mjs';
 import settings from './routes/settings.mjs';
+import youtube from './routes/youtube.mjs';
 import { connectToDatabase } from "./db/conn.mjs";
 import path from "path";
 import { createServer } from "http";
@@ -74,6 +75,7 @@ app.use('/api/videos', videos);
 app.use('/api/projects', projects);
 app.use('/api/admin/dashboard', dashboard);
 app.use('/api/settings', settings);
+app.use('/api/youtube', youtube);
 
 // Serve static files from the React app in production
 // if (process.env.NODE_ENV === 'production') {

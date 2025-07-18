@@ -73,15 +73,15 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
           const thumbnail = getVideoThumbnail(videoId);
           const youtubeData = await fetchYouTubeVideoData(url);
           
-          if (youtubeData) {
-            setFormData(prev => ({
-              ...prev,
-              url,
-              title: youtubeData.title,
-              description: youtubeData.description,
-              thumbnail
-            }));
-          }
+            if (youtubeData) {
+              setFormData(prev => ({
+                ...prev,
+                url,
+                title: youtubeData.title !== 'YouTube Video' ? youtubeData.title : prev.title,
+                description: youtubeData.description !== 'Video from YouTube' ? youtubeData.description : prev.description,
+                thumbnail
+              }));
+            }
         }
       } catch (error) {
         console.error('Error fetching YouTube data:', error);
@@ -99,9 +99,11 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
         title: formData.title,
         url: formData.url,
         description: formData.description,
-        keywords: formData.keywords.split(',').map(k => k.trim()),
+        keywords: formData.keywords.split(',').map(k => k.trim()).filter(k => k),
         category: formData.category,
-        thumbnail: formData.thumbnail || getVideoThumbnail(extractVideoId(formData.url) || '')
+        thumbnail: formData.thumbnail || getVideoThumbnail(extractVideoId(formData.url) || ''),
+        views: '0',
+        status: 'active'
       };
       const data = await apiRequestJson(`${apiBaseUrl}/api/videos`, { method: 'POST', body: JSON.stringify(newVideo) }) as Video;
       setVideos([data, ...videos]);

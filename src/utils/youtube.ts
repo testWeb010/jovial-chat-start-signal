@@ -35,23 +35,38 @@ export const fetchYouTubeVideoData = async (url: string): Promise<YouTubeVideoDa
   }
 
   try {
-    // For production, you would use YouTube Data API
-    // For now, we'll return mock data with proper thumbnail
-    const thumbnail = getVideoThumbnail(videoId);
+    // Use backend API to fetch YouTube data
+    const response = await fetch(`http://localhost:3001/api/youtube/video/${videoId}`, {
+      credentials: 'include'
+    });
     
-    // You can expand this to use YouTube Data API v3
+    if (!response.ok) {
+      throw new Error('Failed to fetch video data');
+    }
+    
+    const data = await response.json();
+    
     return {
-      title: 'Video Title (Auto-detected)',
-      description: 'Video description will be auto-filled from YouTube',
-      thumbnail,
-      duration: '0:00',
-      views: '0',
-      publishedAt: new Date().toISOString(),
-      channelTitle: 'Channel Name'
+      title: data.title || 'YouTube Video',
+      description: data.description || 'No description available',
+      thumbnail: data.thumbnail || getVideoThumbnail(videoId),
+      duration: data.duration || '0:00',
+      views: data.views || '0',
+      publishedAt: data.publishedAt || new Date().toISOString(),
+      channelTitle: data.channelTitle || 'Unknown Channel'
     };
   } catch (error) {
     console.error('Error fetching YouTube data:', error);
-    return null;
+    // Return basic data with thumbnail if API fails
+    return {
+      title: 'YouTube Video',
+      description: 'Video from YouTube',
+      thumbnail: getVideoThumbnail(videoId),
+      duration: '0:00',
+      views: '0',
+      publishedAt: new Date().toISOString(),
+      channelTitle: 'YouTube'
+    };
   }
 };
 

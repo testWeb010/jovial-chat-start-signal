@@ -109,8 +109,8 @@ router.post('/', verifyAdmin, async (req, res) => {
       category,
       duration: duration || 'N/A',
       uploader: uploader || 'Admin',
-      views: '0',
-      status: 'published',
+      views: 0,
+      status: 'active',
       createdAt: new Date().toISOString(),
       createdBy: req.user.userId
     };

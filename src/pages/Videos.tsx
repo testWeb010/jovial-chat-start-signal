@@ -81,6 +81,10 @@ const Videos = () => {
   }, [videos, searchTerm, activeCategory, sortOrder]);
 
   const paginatedVideos = useMemo(() => {
+    // If 6 or fewer videos, show all without pagination
+    if (filteredAndSortedVideos.length <= 6) {
+      return filteredAndSortedVideos;
+    }
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredAndSortedVideos.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredAndSortedVideos, currentPage]);
@@ -116,19 +120,22 @@ const Videos = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Mobile Filter Button */}
-          <div className="lg:hidden mb-4">
-            <button
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl font-semibold hover:bg-gray-700 transition-colors"
-            >
-              <ListFilter size={20} />
-              <span>{isFilterOpen ? 'Hide' : 'Show'} Filters</span>
-            </button>
-          </div>
+          {/* Mobile Filter Button - Only show if there are multiple videos */}
+          {filteredAndSortedVideos.length > 6 && (
+            <div className="lg:hidden mb-4">
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl font-semibold hover:bg-gray-700 transition-colors"
+              >
+                <ListFilter size={20} />
+                <span>{isFilterOpen ? 'Hide' : 'Show'} Filters</span>
+              </button>
+            </div>
+          )}
 
-          {/* Sidebar */}
-          <aside className={`lg:col-span-1 space-y-8 ${isFilterOpen ? 'block' : 'hidden'} lg:block`}>
+          {/* Sidebar - Only show if there are multiple videos */}
+          {filteredAndSortedVideos.length > 6 && (
+            <aside className={`lg:col-span-1 space-y-8 ${isFilterOpen ? 'block' : 'hidden'} lg:block`}>
             <div className="p-6 bg-gray-800/50 border border-gray-700 rounded-2xl">
               <h3 className="text-xl font-bold mb-6">Filters</h3>
               
@@ -148,8 +155,8 @@ const Videos = () => {
                       <span>{category}</span>
                       <span className='text-xs bg-gray-700 px-2 py-0.5 rounded-full'>
                         {category === 'All' 
-                          ? videos.filter(v => v.status === 'active').length 
-                          : videos.filter(v => v.category === category && v.status === 'active').length}
+                          ? (Array.isArray(videos) ? videos.filter(v => v.status === 'active').length : 0)
+                          : (Array.isArray(videos) ? videos.filter(v => v.category === category && v.status === 'active').length : 0)}
                       </span>
                     </button>
                   ))}
@@ -168,20 +175,39 @@ const Videos = () => {
               </div>
             </div>
           </aside>
+          )}
 
           {/* Main Content */}
-          <main className="lg:col-span-3">
-            {/* Search Bar */}
-            <div className="relative mb-8">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Search videos..."
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full bg-gray-800/50 border border-gray-700 rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition"
-              />
-            </div>
+          <main className={`${filteredAndSortedVideos.length > 6 ? 'lg:col-span-3' : 'lg:col-span-4'}`}>
+            {/* Search Bar - Only show if there are multiple videos */}
+            {filteredAndSortedVideos.length > 6 && (
+              <div className="relative mb-8">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Search videos..."
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                  className="w-full bg-gray-800/50 border border-gray-700 rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition"
+                />
+              </div>
+            )}
+
+            {/* Loading State */}
+            {loading && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-12">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="bg-gray-700 rounded-2xl aspect-video mb-4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-700 rounded w-1/2"></div>
+                      <div className="h-3 bg-gray-700 rounded w-1/4"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Video Grid */}
             {!loading && !error && paginatedVideos.length > 0 && (
@@ -216,7 +242,7 @@ const Videos = () => {
                           </h3>
                           <p className='text-sm text-gray-400 line-clamp-2 mb-1'>{video.description}</p>
                           <p className='text-sm text-gray-400'>
-                            {`${(video.views / 1000).toFixed(0)}K views`}
+                            {typeof video.views === 'number' ? `${(video.views / 1000).toFixed(0)}K views` : `${video.views} views`}
                             <span className='mx-1'>•</span>
                             {formatTimeAgo(video.createdAt)}
                           </p>
@@ -274,8 +300,8 @@ const Videos = () => {
               </div>
             )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
+            {/* Pagination - Only show if there are multiple pages and more than 6 videos */}
+            {totalPages > 1 && filteredAndSortedVideos.length > 6 && (
               <div className="mt-12 flex justify-center items-center gap-4">
                 <button 
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
