@@ -1,12 +1,13 @@
 {
   "name": "across-media-server",
   "version": "1.0.0",
-  "description": "Backend server for Across Media",
-  "main": "index.mjs",
+  "description": "Server for Across Media application",
+  "main": "app.mjs",
   "type": "module",
   "scripts": {
     "start": "node app.mjs",
-    "dev": "nodemon app.mjs"
+    "dev": "nodemon app.mjs",
+    "build": "node app.mjs"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
