@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+
 export const ProjectCardSkeleton = () => (
   <div className="bg-gray-900 rounded-2xl overflow-hidden border border-gray-700">
     <Skeleton className="w-full aspect-[4/3] bg-gray-800" />

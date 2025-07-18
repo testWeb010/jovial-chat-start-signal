@@ -18,7 +18,6 @@ interface Video {
   status: string;
   thumbnail?: string;
 }
-
 const categories = ['All', 'Corporate', 'Branding', 'Celebrity', 'Entertainment'];
 const sortOptions = [
   { value: 'newest', label: 'Newest first', icon: Calendar },

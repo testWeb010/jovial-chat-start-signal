@@ -1,7 +1,6 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Send, MessageCircle } from 'lucide-react';
 
-
 const Contact = () => {
   return (
     <section id="contact" className="py-32 bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
