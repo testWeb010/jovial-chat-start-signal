@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Grid, List, Search, X, ChevronLeft, ChevronRight, Calendar, Eye, Heart, ExternalLink, ZoomIn, Award, Users, Handshake, Lightbulb } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Skeleton } from '@/components/ui/skeleton';
 import { apiRequestJson } from '../utils/api';
 
 
@@ -427,11 +429,12 @@ const ProjectsSection = () => {
     </div>
   );
 
-  const ProjectCard = ({ project, isListView = false }) => {
+  const ProjectCard = ({ project, isListView = false, index = 0 }) => {
     const IconComponent = getCategoryIcon(project.category);
     
     return (
-      <div className={`group relative ${
+      <div 
+        className={`group relative ${
         isListView 
           ? 'flex gap-6 bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300' 
           : 'bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300'

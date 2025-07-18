@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Play, Filter, Grid3X3, List, Clock, Calendar, TrendingUp, Eye, MoreVertical, Share2, Copy, Users, Star, ChevronLeft, ChevronRight, ListFilter, CheckCircle, Dot, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatTimeAgo } from '@/lib/utils';
 import { apiRequestJson } from '../utils/api';
 
@@ -437,22 +439,45 @@ const VideoSection = () => {
               {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
                   {[...Array(8)].map((_, i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="bg-gray-800 rounded-2xl overflow-hidden">
-                        <div className="aspect-video bg-gray-700"></div>
-                        <div className="p-4 space-y-3">
-                          <div className="h-4 bg-gray-700 rounded w-3/4"></div>
-                          <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-                          <div className="h-3 bg-gray-700 rounded w-1/4"></div>
-                        </div>
+                    <motion.div 
+                      key={i} 
+                      className="bg-gray-800 rounded-2xl overflow-hidden"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                    >
+                      <Skeleton className="aspect-video bg-gray-700" />
+                      <div className="p-4 space-y-3">
+                        <Skeleton className="h-4 bg-gray-700 rounded w-3/4" />
+                        <Skeleton className="h-3 bg-gray-700 rounded w-1/2" />
+                        <Skeleton className="h-3 bg-gray-700 rounded w-1/4" />
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
-                  {paginatedVideos.map(video => (
-                    <div key={video.id} className="group relative">
+                <motion.div 
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {paginatedVideos.map((video, index) => (
+                    <motion.div 
+                      key={video.id} 
+                      className="group relative"
+                      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ 
+                        delay: index * 0.1,
+                        duration: 0.5,
+                        ease: "easeOut"
+                      }}
+                      whileHover={{ 
+                        y: -8,
+                        transition: { duration: 0.2 }
+                      }}
+                    >
                       {/* Glowing effect */}
                       <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-pink-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-1000"></div>
                       
@@ -564,9 +589,9 @@ const VideoSection = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               )}
 
               {/* No Results */}
