@@ -51,8 +51,8 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const data = await apiRequestJson('/api/videos');
-      setVideos(Array.isArray(data) ? data : []);
+      const data = await apiRequestJson('/api/videos') as { videos?: Video[] } | Video[];
+      setVideos(Array.isArray(data) ? data : ((data as { videos?: Video[] }).videos || []));
     } catch (err) {
       console.error('Fetch videos error:', err);
       setVideos([]);
