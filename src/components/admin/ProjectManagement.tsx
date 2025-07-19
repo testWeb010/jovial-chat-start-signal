@@ -50,8 +50,15 @@ const ProjectManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; 
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const data = await apiRequestJson('http://localhost:3001/api/projects');
-      setProjects(Array.isArray(data) ? data : []);
+      const data = await apiRequestJson('/api/projects');
+      // Handle both array response and object with projects property
+      if (Array.isArray(data)) {
+        setProjects(data);
+      } else if (data && typeof data === 'object' && 'projects' in data) {
+        setProjects((data as any).projects || []);
+      } else {
+        setProjects([]);
+      }
     } catch (err) {
       console.error('Fetch projects error:', err);
       setProjects([]);
@@ -79,9 +86,8 @@ const ProjectManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const method = editingProject ? 'PUT' : 'POST';
-      const url = editingProject ? `${apiBaseUrl}/api/projects/${editingProject._id}` : `${apiBaseUrl}/api/projects`;
+      const url = editingProject ? `/api/projects/${editingProject._id}` : '/api/projects';
       const response = await apiRequestJson(url, {
         method,
         body: JSON.stringify({
@@ -132,8 +138,7 @@ const ProjectManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; 
 
   const handleDelete = async (id: string) => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      await apiRequestJson(`${apiBaseUrl}/api/projects/${id}`, { method: 'DELETE' });
+      await apiRequestJson(`/api/projects/${id}`, { method: 'DELETE' });
       setProjects(projects.filter(project => project._id !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete project');

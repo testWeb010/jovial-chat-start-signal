@@ -9,10 +9,12 @@ interface Project {
   description: string;
   category: string;
   client: string;
-  images: string[];
-  status: 'active' | 'draft';
+  image?: string;
+  images?: string[];
+  status: 'active' | 'draft' | 'completed' | 'ongoing' | 'upcoming';
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+  keywords?: string[];
 }
 
 const categories = ['All', 'Branded Content', 'Celebrity Engagement', 'Sponsorships', 'Intellectual Properties'];
@@ -35,12 +37,16 @@ const Projects = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await apiRequestJson<{
-        projects: Project[];
-        pagination: { page: number; limit: number; total: number; totalPages: number };
-      }>('/api/projects');
+      const response = await apiRequestJson('/api/projects');
       
-      setProjects(response.projects || []);
+      // Handle both array response and object with projects property
+      if (Array.isArray(response)) {
+        setProjects(response);
+      } else if (response && typeof response === 'object' && 'projects' in response) {
+        setProjects((response as any).projects || []);
+      } else {
+        setProjects([]);
+      }
     } catch (err) {
       console.error('Failed to fetch projects:', err);
       setError('Failed to load projects. Please try again later.');
@@ -57,7 +63,8 @@ const Projects = () => {
       const matchesCategory = activeCategory === 'All' || project.category === activeCategory;
       const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            project.description.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesCategory && matchesSearch && project.status === 'active';
+      // Show completed projects and other statuses, not just 'active'
+      return matchesCategory && matchesSearch;
     });
 
     // Sort by creation date (newest first)
@@ -112,20 +119,23 @@ const Projects = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Mobile Filter Button */}
-          <div className="lg:hidden mb-4">
-            <button
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl font-semibold hover:bg-gray-700 transition-colors"
-            >
-              <ListFilter size={20} />
-              <span>{isFilterOpen ? 'Hide' : 'Show'} Filters</span>
-            </button>
-          </div>
+        <div className={`grid grid-cols-1 ${projects.length > 10 ? 'lg:grid-cols-4' : 'lg:grid-cols-1'} gap-8`}>
+          {/* Mobile Filter Button - Only show if there are more than 10 projects */}
+          {projects.length > 10 && (
+            <div className="lg:hidden mb-4">
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl font-semibold hover:bg-gray-700 transition-colors"
+              >
+                <ListFilter size={20} />
+                <span>{isFilterOpen ? 'Hide' : 'Show'} Filters</span>
+              </button>
+            </div>
+          )}
 
-          {/* Sidebar */}
-          <aside className={`lg:col-span-1 space-y-8 ${isFilterOpen ? 'block' : 'hidden'} lg:block`}>
+          {/* Sidebar - Only show if there are more than 10 projects */}
+          {projects.length > 10 && (
+            <aside className={`lg:col-span-1 space-y-8 ${isFilterOpen ? 'block' : 'hidden'} lg:block`}>
             <div className="p-6 bg-gray-800/50 border border-gray-700 rounded-2xl">
               <h3 className="text-xl font-bold mb-6">Filters</h3>
               
@@ -143,20 +153,21 @@ const Projects = () => {
                         : 'hover:bg-gray-700/50 text-gray-300'
                       }`}>
                       <span>{category}</span>
-                      <span className='text-xs bg-gray-700 px-2 py-0.5 rounded-full'>
-                        {category === 'All' 
-                          ? projects.filter(p => p.status === 'active').length 
-                          : projects.filter(p => p.category === category && p.status === 'active').length}
-                      </span>
+                       <span className='text-xs bg-gray-700 px-2 py-0.5 rounded-full'>
+                         {category === 'All' 
+                           ? projects.length 
+                           : projects.filter(p => p.category === category).length}
+                       </span>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
           </aside>
+          )}
 
           {/* Main Content */}
-          <main className="lg:col-span-3">
+          <main className={projects.length > 10 ? "lg:col-span-3" : "lg:col-span-1"}>
             {/* Search Bar */}
             <div className="relative mb-8">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -179,14 +190,14 @@ const Projects = () => {
                     
                     <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-500">
                       <div className="relative overflow-hidden">
-                        <img 
-                          src={project.images?.[0] || 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=800&h=600&fit=crop'}
-                          alt={project.title}
-                          className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-700"
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=800&h=600&fit=crop';
-                          }}
-                        />
+                         <img 
+                           src={project.image || project.images?.[0] || 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=800&h=600&fit=crop'}
+                           alt={project.title}
+                           className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-700"
+                           onError={(e) => {
+                             e.currentTarget.src = 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=800&h=600&fit=crop';
+                           }}
+                         />
                         
                         {/* Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500">
