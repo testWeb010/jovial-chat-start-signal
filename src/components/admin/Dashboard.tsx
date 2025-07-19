@@ -79,7 +79,7 @@ const Dashboard = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; themeCla
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const data = await apiRequestJson('http://localhost:3001/api/admin/dashboard');
+      const data = await apiRequestJson('/api/dashboard');
       setDashboardData(data as DashboardData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');

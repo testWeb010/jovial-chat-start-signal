@@ -51,7 +51,7 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const data = await apiRequestJson('http://localhost:3001/api/videos');
+      const data = await apiRequestJson('/api/videos');
       setVideos(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Fetch videos error:', err);
@@ -99,7 +99,6 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
       // Fetch fresh YouTube data before saving
       const youtubeData = await fetchYouTubeVideoData(formData.url);
       
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
       const newVideo = {
         title: youtubeData?.title || formData.title,
         url: formData.url,
@@ -113,7 +112,7 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
         status: 'active'
       };
       
-      const data = await apiRequestJson(`${apiBaseUrl}/api/videos`, { method: 'POST', body: JSON.stringify(newVideo) }) as Video;
+      const data = await apiRequestJson('/api/videos', { method: 'POST', body: JSON.stringify(newVideo) }) as Video;
       setVideos([data, ...videos]);
       setFormData({ title: '', url: '', description: '', keywords: '', category: 'Branded Content', thumbnail: '' });
       setShowAddForm(false);
@@ -126,8 +125,7 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
 
   const handleDelete = async (id: string) => {
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      await apiRequestJson(`${apiBaseUrl}/api/videos/${id}`, { method: 'DELETE' });
+      await apiRequestJson(`/api/videos/${id}`, { method: 'DELETE' });
       setVideos(videos.filter(video => video._id !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete video');
