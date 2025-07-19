@@ -16,6 +16,7 @@ import { createServer } from "http";
 import { fileURLToPath } from "url";
 import { Server } from "socket.io";
 import cookieParser from "cookie-parser";
+import { securityHeaders } from './middleware/securityMiddleware.mjs';
 
 
 // Support __dirname in ES modules
@@ -36,15 +37,33 @@ const io = new Server(httpServer, {
   }
 });
 
-// Middleware
+// Security Middleware (must be first)
+app.use(securityHeaders);
+
+// CORS Middleware
 app.use(cors({
   origin: clientURL,
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// Body parsing middleware with size limits
+app.use(express.json({ 
+  limit: '10mb',
+  type: 'application/json'
+}));
+app.use(express.urlencoded({ 
+  limit: '10mb', 
+  extended: true,
+  parameterLimit: 1000
+}));
+
+// Cookie parser with security options
 app.use(cookieParser());
+
+// Trust proxy for accurate IP addresses (important for rate limiting)
+app.set('trust proxy', 1);
 
 // Error handling for unhandled exceptions and rejections
 process.on('uncaughtException', (err) => {

@@ -4,6 +4,27 @@ import jwt from 'jsonwebtoken';
 import { getDb } from "../db/conn.mjs";
 import { sendApprovalRequestEmail, sendApprovalNotification } from '../utils/emailService.mjs';
 import mongoose from 'mongoose';
+import { 
+  loginRateLimit, 
+  progressiveDelay, 
+  accountLockoutMiddleware, 
+  handleFailedLogin, 
+  handleSuccessfulLogin,
+  validateLoginInput,
+  handleValidationErrors,
+  sessionConfig,
+  detectAnomalousActivity
+} from '../middleware/securityMiddleware.mjs';
+import { 
+  validatePasswordStrength, 
+  hashPassword, 
+  comparePassword, 
+  generateJWT, 
+  verifyJWT, 
+  generateCaptchaChallenge,
+  sanitizeInput,
+  logSecurityEvent
+} from '../utils/securityUtils.mjs';
 
 const ObjectId = mongoose.Types.ObjectId;
 const router = express.Router();
@@ -11,91 +32,203 @@ const router = express.Router();
 // JWT secret key from environment variable
 const JWT_SECRET = process.env.JWT_SECRET;
 
-router.post('/login', async (req, res) => {
+// CAPTCHA challenge storage (use Redis in production)
+const captchaChallenges = new Map();
+
+// Generate CAPTCHA endpoint
+router.get('/captcha', (req, res) => {
+  try {
+    const challenge = generateCaptchaChallenge();
+    captchaChallenges.set(challenge.id, {
+      answer: challenge.answer,
+      expiresAt: challenge.expiresAt
+    });
+    
+    // Clean expired challenges
+    setTimeout(() => {
+      captchaChallenges.delete(challenge.id);
+    }, 5 * 60 * 1000);
+    
+    res.json({
+      id: challenge.id,
+      question: challenge.question
+    });
+  } catch (error) {
+    logSecurityEvent('CAPTCHA_GENERATION_ERROR', { error: error.message }, req);
+    res.status(500).json({ error: 'Failed to generate CAPTCHA' });
+  }
+});
+
+// Enhanced Login route with comprehensive security
+router.post('/login', 
+  loginRateLimit, 
+  progressiveDelay, 
+  accountLockoutMiddleware,
+  detectAnomalousActivity,
+  validateLoginInput,
+  handleValidationErrors,
+  async (req, res) => {
   try {
     const db = getDb().connection;
-    const { username, password } = req.body;
+    const { username, password, captchaId, captchaAnswer } = req.body;
 
-    // Check if credentials are provided
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Both username and password are required.'
-      });
+    // Sanitize inputs
+    const sanitizedUsername = sanitizeInput(username);
+    
+    // Verify CAPTCHA if suspicious activity detected or after multiple failed attempts
+    if (req.suspiciousActivity || captchaId) {
+      if (!captchaId || !captchaAnswer) {
+        logSecurityEvent('LOGIN_MISSING_CAPTCHA', { username: sanitizedUsername }, req);
+        return res.status(400).json({ 
+          error: 'CAPTCHA verification required',
+          type: 'CAPTCHA_REQUIRED'
+        });
+      }
+
+      const challenge = captchaChallenges.get(captchaId);
+      if (!challenge || Date.now() > challenge.expiresAt || challenge.answer !== captchaAnswer) {
+        logSecurityEvent('LOGIN_INVALID_CAPTCHA', { username: sanitizedUsername }, req);
+        captchaChallenges.delete(captchaId);
+        return res.status(400).json({ 
+          error: 'Invalid or expired CAPTCHA',
+          type: 'CAPTCHA_INVALID'
+        });
+      }
+      
+      // Clean up used CAPTCHA
+      captchaChallenges.delete(captchaId);
     }
 
-    // Find admin by username (not email)
-    const admin = await db.collection("admins").findOne({ username: username.trim() });
+    // Find admin by username with timing attack protection
+    const admin = await db.collection("admins").findOne({ username: sanitizedUsername.trim() });
+    
+    // Always perform password comparison to prevent timing attacks
+    let isValidPassword = false;
+    if (admin && admin.role !== 'pending') {
+      isValidPassword = await comparePassword(password, admin.password);
+    } else {
+      // Perform dummy comparison to maintain consistent timing
+      await comparePassword(password, '$2b$12$dummy.hash.to.prevent.timing.attacks');
+    }
 
+    // Check if account exists and is not pending
     if (!admin) {
-      return res.status(401).json({
-        success: false,
-        message: 'No account found with this username.'
+      handleFailedLogin(sanitizedUsername);
+      logSecurityEvent('LOGIN_INVALID_ACCOUNT', { 
+        username: sanitizedUsername,
+        accountExists: false
+      }, req);
+      
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        type: 'INVALID_CREDENTIALS'
       });
     }
 
-    // Compare passwords
-    const isPasswordValid = await bcrypt.compare(password, admin.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: 'Incorrect password. Please try again.'
-      });
-    }
-
-    // Block login if role is pending
     if (admin.role === 'pending') {
+      handleFailedLogin(sanitizedUsername);
+      logSecurityEvent('LOGIN_PENDING_ACCOUNT', { 
+        username: sanitizedUsername,
+        isPending: true
+      }, req);
+      
       return res.status(403).json({
-        success: false,
-        message: 'Your account is still pending approval. Please wait for admin confirmation.'
+        error: 'Your account is still pending approval. Please wait for admin confirmation.',
+        type: 'ACCOUNT_PENDING'
       });
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { userId: admin._id, username: admin.username, role: admin.role },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
+    // Validate password
+    if (!isValidPassword) {
+      handleFailedLogin(sanitizedUsername);
+      logSecurityEvent('LOGIN_INVALID_PASSWORD', { username: sanitizedUsername }, req);
+      
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        type: 'INVALID_CREDENTIALS'
+      });
+    }
 
-    // Set cookie
-    res.cookie('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    });
+    // Successful login - reset failed attempts
+    handleSuccessfulLogin(sanitizedUsername);
+    
+    // Generate secure JWT
+    const token = generateJWT({
+      userId: admin._id,
+      username: admin.username,
+      role: admin.role,
+      sessionId: Date.now() // For session tracking
+    }, '15m'); // Shorter session for security
 
-    // Respond with success and data
+    // Set secure HTTP-only cookie
+    res.cookie('auth_token', token, sessionConfig);
+
+    // Log successful login
+    logSecurityEvent('LOGIN_SUCCESS', {
+      username: sanitizedUsername,
+      userId: admin._id,
+      role: admin.role
+    }, req);
+
     return res.status(200).json({
       success: true,
       message: 'Login successful as admin.',
-      // token,
-      // data: {
-      //   userId: admin._id,
-      //   username: admin.username,
-      //   email: admin.email,
-      //   role: admin.role
-      // }
+      sessionTimeout: sessionConfig.maxAge
     });
 
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'An unexpected error occurred during login. Please try again later.'
+    logSecurityEvent('LOGIN_ERROR', { 
+      error: error.message,
+      stack: error.stack 
+    }, req);
+    
+    console.error('Login error:', error);
+    return res.status(500).json({ 
+      error: 'An unexpected error occurred during login. Please try again later.',
+      type: 'SERVER_ERROR'
     });
   }
 });
 
-// Logout route
+// Enhanced Logout route
 router.post('/logout', (req, res) => {
-  res.cookie('auth_token', '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    expires: new Date(0) // Set to a past date to expire immediately
-  });
-  res.status(200).json({ success: true, message: 'Logout successful' });
+  try {
+    const token = req.cookies.auth_token;
+    
+    if (token) {
+      try {
+        const decoded = verifyJWT(token);
+        logSecurityEvent('LOGOUT_SUCCESS', {
+          username: decoded.username,
+          userId: decoded.userId
+        }, req);
+      } catch (error) {
+        // Token was invalid, but we still want to clear the cookie
+        logSecurityEvent('LOGOUT_INVALID_TOKEN', {}, req);
+      }
+    }
+
+    // Clear cookie with same options as when it was set
+    res.cookie('auth_token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: new Date(0), // Set to a past date to expire immediately
+      path: '/'
+    });
+    
+    res.status(200).json({ 
+      success: true, 
+      message: 'Logout successful',
+      type: 'SUCCESS'
+    });
+  } catch (error) {
+    logSecurityEvent('LOGOUT_ERROR', { error: error.message }, req);
+    res.status(500).json({ 
+      error: 'Logout failed',
+      type: 'SERVER_ERROR'
+    });
+  }
 });
 
 
