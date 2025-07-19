@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Video, Image, Eye, Heart, TrendingUp, Calendar, Users, BarChart3 } from 'lucide-react';
 import { apiRequestJson } from '../../utils/api';
 
-
 interface DashboardData {
   totalVideos: number;
   totalProjects: number;

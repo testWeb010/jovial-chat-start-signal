@@ -8,7 +8,6 @@ import Settings from './Settings';
 import LogoutButton from '../auth/LogoutButton';
 import { apiRequestJson } from '../../utils/api';
 
-
 interface ThemeClasses {
   bg: string;
   cardBg: string;

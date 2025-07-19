@@ -5,7 +5,6 @@ import { getDb } from "../db/conn.mjs";
 import { sendApprovalRequestEmail, sendApprovalNotification } from '../utils/emailService.mjs';
 import mongoose from 'mongoose';
 
-
 const ObjectId = mongoose.Types.ObjectId;
 const router = express.Router();
 

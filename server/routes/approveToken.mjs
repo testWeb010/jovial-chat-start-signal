@@ -1,7 +1,6 @@
 import express from 'express';
 import { getDb } from '../db/conn.mjs';
 
-
 const router = express.Router();
 
 // Approve admin via token (GET for link click)

@@ -3,7 +3,6 @@ import { Search, ChevronLeft, ChevronRight, ListFilter, ExternalLink, Play, Arro
 import { formatTimeAgo } from '@/lib/utils';
 import { apiRequestJson } from '@/utils/api';
 
-
 interface Project {
   _id: string;
   title: string;

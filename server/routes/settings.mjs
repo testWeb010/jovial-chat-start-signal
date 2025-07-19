@@ -4,7 +4,6 @@ import bcrypt from 'bcrypt';
 import { getDb } from "../db/conn.mjs";
 import mongoose from 'mongoose';
 
-
 const ObjectId = mongoose.Types.ObjectId;
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;

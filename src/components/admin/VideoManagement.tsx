@@ -3,7 +3,6 @@ import { Plus, Video, Edit, Trash2, Eye, Search, Filter, Calendar, Tag, External
 import { apiRequestJson } from '../../utils/api';
 import { fetchYouTubeVideoData, extractVideoId, getVideoThumbnail } from '../../utils/youtube';
 
-
 interface Video {
   _id: string;
   title: string;

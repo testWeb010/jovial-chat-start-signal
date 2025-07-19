@@ -7,9 +7,7 @@ import About from './components/About';
 import Portfolio from './components/Portfolio';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
-// import VideoSection from './components/VideoSection';
 import Videos from './pages/Videos';
-import ProjectsSection from './components/ProjectSection';
 import AdminPanel from './components/admin/AdminPanel';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
@@ -17,7 +15,7 @@ import ForgotPassword from './components/auth/ForgotPassword';
 import PendingApproval from './components/auth/PendingApproval'
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import NotFound from './pages/NotFound'; // Corrected import path for NotFound component
-
+import Projects from './pages/Projects';
 
 const AppContent = () => {
   const location = useLocation();
@@ -43,7 +41,7 @@ const AppContent = () => {
         <Route path={import.meta.env.VITE_FORGOT_PASSWORD_PATH} element={<ForgotPassword />} />
         <Route path={import.meta.env.VITE_PENDING_APPROVAL_PATH} element={<PendingApproval />} />
         <Route path={import.meta.env.VITE_VIDEOS_PATH} element={<Videos/>} />
-        <Route path={import.meta.env.VITE_PROJECTS_PATH} element={<ProjectsSection />} />
+        <Route path={import.meta.env.VITE_PROJECTS_PATH} element={<Projects/>} />
         <Route path={import.meta.env.VITE_ADMIN_PATH} element={
           <ProtectedRoute>
             <AdminPanel />

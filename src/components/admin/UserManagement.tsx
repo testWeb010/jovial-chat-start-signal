@@ -3,7 +3,6 @@ import { Users, Search, Filter, CheckCircle, XCircle, UserCheck, UserX, Trash2, 
 import { apiRequestJson } from '../../utils/api';
 import { toast } from 'sonner';
 
-
 interface User {
   _id: string;
   username: string;
