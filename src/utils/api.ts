@@ -12,13 +12,16 @@ export const apiRequestJson = async <T>(
   options: RequestInit = {}
 ): Promise<T> => {
   const token = localStorage.getItem('auth_token');
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+  
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
 
-  const response = await fetch(url, {
+  const response = await fetch(fullUrl, {
     ...options,
     headers,
     credentials: 'include',
