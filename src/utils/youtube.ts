@@ -12,7 +12,8 @@ export interface YouTubeVideoData {
 export const extractVideoId = (url: string): string | null => {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-    /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+    /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+    /youtube\.com\/shorts\/([^&\n?#]+)/
   ];
   
   for (const pattern of patterns) {
