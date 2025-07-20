@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,29 +8,17 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
-  const [authState, setAuthState] = useState<{
-    isAuthenticated: boolean;
-    isLoading: boolean;
-    error: string | null;
-  }>({
-    isAuthenticated: false,
-    isLoading: true,
-    error: null
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const validateAuth = () => {
+    const checkAuth = () => {
       const token = localStorage.getItem('auth_token');
       const authStatus = localStorage.getItem('auth_status');
       const authTimestamp = localStorage.getItem('auth_timestamp');
 
       // Check if basic auth data exists
       if (!token || authStatus !== 'authenticated') {
-        setAuthState({
-          isAuthenticated: false,
-          isLoading: false,
-          error: 'Authentication required'
-        });
+        setIsAuthenticated(false);
         return;
       }
 
@@ -46,27 +34,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
           localStorage.removeItem('auth_status');
           localStorage.removeItem('auth_timestamp');
           
-          setAuthState({
-            isAuthenticated: false,
-            isLoading: false,
-            error: 'Session expired. Please login again.'
-          });
+          setIsAuthenticated(false);
           return;
         }
       }
 
       // Authentication is valid
-      setAuthState({
-        isAuthenticated: true,
-        isLoading: false,
-        error: null
-      });
+      setIsAuthenticated(true);
     };
 
-    validateAuth();
+    checkAuth();
   }, []);
 
-  if (authState.isLoading) {
+  if (isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700">
@@ -82,7 +62,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  if (!authState.isAuthenticated) {
+  if (!isAuthenticated) {
     const loginPath = import.meta.env.VITE_LOGIN_PATH || '/login';
     return <Navigate to={loginPath} state={{ from: location }} replace />;
   }
