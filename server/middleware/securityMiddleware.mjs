@@ -13,7 +13,7 @@ export const securityHeaders = helmet({
       scriptSrc: ["'self'"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "http://localhost:3001"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -52,8 +52,8 @@ export const loginRateLimit = rateLimit({
 // Progressive delay for suspicious activity - Password Spraying Protection
 export const progressiveDelay = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  delayAfter: 2, // Allow 2 requests per windowMs without delay
-  delayMs: 500, // Add 500ms delay per request after delayAfter
+  delayAfter: 10, // Allow 2 requests per windowMs without delay
+  delayMs: (req) => 500, // Add 500ms delay per request after delayAfter
   maxDelayMs: 20000, // Maximum delay of 20 seconds
 });
 
@@ -123,7 +123,7 @@ export const validateLoginInput = [
   body('password')
     .isLength({ min: 8, max: 128 })
     .withMessage('Password must be between 8 and 128 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&<>])[A-Za-z\d@$!%*?&<>]/)
     .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
 ];
 

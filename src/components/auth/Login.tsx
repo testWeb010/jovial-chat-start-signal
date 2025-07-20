@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
@@ -10,11 +10,15 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const hasNavigated = useRef(false);
 
-  // Check if user is already authenticated
+  // Check if user is already authenticated and redirect to admin panel
   useEffect(() => {
     const authStatus = localStorage.getItem('auth_status');
-    if (authStatus === 'authenticated') {
+    const currentPath = window.location.pathname;
+    if (authStatus === 'authenticated' && currentPath !== '/acs-admin' && !hasNavigated.current) {
+      console.log('User already authenticated, redirecting to /acs-admin');
+      hasNavigated.current = true;
       navigate('/acs-admin');
     }
   }, [navigate]);
@@ -36,22 +40,47 @@ const Login: React.FC = () => {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+      console.log('Login response data:', data);
+
+      // Store session timeout for expiration check
+      if (data.sessionTimeout) {
+        localStorage.setItem('session_timeout', data.sessionTimeout.toString());
       }
 
+      if (!response.ok) {
+        // Check for validation errors or other specific error messages from the server
+        if (data.type === 'VALIDATION_ERROR' && data.details) {
+          const errorMessages = data.details.map((err: any) => `${err.param}: ${err.msg}`).join(', ');
+          throw new Error(`Validation failed: ${errorMessages}`);
+        } else {
+          throw new Error(data.error || data.message || 'Login failed');
+        }
+      }
       // The backend sets the HTTP-only cookie 'auth_token', so we don't need to set it manually.
       // Just navigate to the admin panel on successful login.
       // Store a dummy token or session ID in localStorage for client-side verification
       const now = new Date().toISOString();
+      // Removed setting of dummy auth_token as per user request
       localStorage.setItem('auth_status', 'authenticated');
       localStorage.setItem('auth_timestamp', now);
       setTimeout(() => {
-        navigate('/acs-admin');
-      }, 100); // Adding a 100ms delay to ensure token is processed
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/acs-admin') {
+          console.log('Navigating to /acs-admin after successful login');
+          navigate('/acs-admin');
+          // Fallback to window.location.href if navigate doesn't work
+          setTimeout(() => {
+            if (window.location.pathname !== '/acs-admin') {
+              console.log('Fallback: Using window.location.href for redirection');
+              window.location.href = '/acs-admin';
+            }
+          }, 500);
+        } else {
+          console.log('Already on /acs-admin, no navigation needed');
+        }
+      }, 100); // Adding a small delay to ensure navigation happens after state updates
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred during login');
-      console.error('Login error:', err);
     } finally {
       setIsLoading(false);
     }
