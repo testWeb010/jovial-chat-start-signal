@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface AuthState {
@@ -17,7 +17,7 @@ export const useAuthToken = () => {
   });
   const navigate = useNavigate();
 
-  const validateAuth = () => {
+  const validateAuth = useCallback(() => {
     const token = localStorage.getItem('auth_token');
     const authStatus = localStorage.getItem('auth_status');
     const authTimestamp = localStorage.getItem('auth_timestamp');
@@ -61,9 +61,9 @@ export const useAuthToken = () => {
       token
     });
     return true;
-  };
+  }, []);
 
-  const redirectToLogin = () => {
+  const redirectToLogin = useCallback(() => {
     const adminPath = import.meta.env.VITE_ADMIN_PATH || '/admin';
     const loginPath = import.meta.env.VITE_LOGIN_PATH || '/login';
     
@@ -76,7 +76,7 @@ export const useAuthToken = () => {
       state: { from: adminPath },
       replace: true 
     });
-  };
+  }, [navigate]);
 
   useEffect(() => {
     const isValid = validateAuth();
@@ -100,7 +100,7 @@ export const useAuthToken = () => {
     }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [validateAuth, redirectToLogin]);
 
   const forceRefresh = () => {
     validateAuth();
