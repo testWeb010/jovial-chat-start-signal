@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Video, Edit, Trash2, Eye, Search, Filter, Calendar, Tag, ExternalLink, Youtube, Loader2 } from 'lucide-react';
 import { apiRequestJson } from '../../utils/api';
 import { fetchYouTubeVideoData, extractVideoId, getVideoThumbnail } from '../../utils/youtube';
+import AuthenticatedWrapper from './AuthenticatedWrapper';
 
 interface Video {
   _id: string;
@@ -148,11 +149,12 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
 
   const categories = ['Branded Content', 'Celebrity Engagement', 'Sponsorships', 'Intellectual Properties'];
 
-  if (loading) return <div className="text-center p-8">Loading videos...</div>;
-  if (error) return <div className="text-center p-8 text-red-500">Error: {error}</div>;
-
   return (
-    <div className="space-y-6">
+    <AuthenticatedWrapper themeClasses={themeClasses}>
+      {loading && <div className="text-center p-8">Loading videos...</div>}
+      {error && <div className="text-center p-8 text-red-500">Error: {error}</div>}
+      {!loading && !error && (
+        <div className="space-y-6">
       {/* Header */}
       <div className={`${themeClasses.cardBg} rounded-2xl p-6 ${themeClasses.border} border`}>
         <div className="flex items-center justify-between">
@@ -377,7 +379,9 @@ const VideoManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; th
           <p className={themeClasses.textSecondary}>Try adjusting your search or filters</p>
         </div>
       )}
-    </div>
+        </div>
+      )}
+    </AuthenticatedWrapper>
   );
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Search, Filter, CheckCircle, XCircle, UserCheck, UserX, Trash2, Shield, ShieldCheck, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiRequestJson } from '../../utils/api';
 import { toast } from 'sonner';
+import AuthenticatedWrapper from './AuthenticatedWrapper';
 
 interface User {
   _id: string;
@@ -184,32 +185,30 @@ const UserManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; the
     setPagination(prev => ({ ...prev, page: newPage }));
   };
 
-  if (loading && users.length === 0) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <RefreshCw className="animate-spin mr-2" size={20} />
-        <span>Loading users...</span>
-      </div>
-    );
-  }
-
-  if (error && users.length === 0) {
-    return (
-      <div className="text-center p-8 text-red-500">
-        <AlertCircle size={48} className="mx-auto mb-4" />
-        <p>Error: {error}</p>
-        <button 
-          onClick={fetchUsers}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
+    <AuthenticatedWrapper themeClasses={themeClasses}>
+      {loading && users.length === 0 && (
+        <div className="flex items-center justify-center p-12">
+          <RefreshCw className="animate-spin mr-2" size={20} />
+          <span>Loading users...</span>
+        </div>
+      )}
+
+      {error && users.length === 0 && (
+        <div className="text-center p-8 text-red-500">
+          <AlertCircle size={48} className="mx-auto mb-4" />
+          <p>Error: {error}</p>
+          <button 
+            onClick={fetchUsers}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="space-y-6">
       {/* Header */}
       <div className={`${themeClasses.cardBg} rounded-2xl p-6 ${themeClasses.border} border`}>
         <div className="flex items-center justify-between">
@@ -429,7 +428,9 @@ const UserManagement = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; the
           </div>
         </div>
       )}
-    </div>
+        </div>
+      )}
+    </AuthenticatedWrapper>
   );
 };
 

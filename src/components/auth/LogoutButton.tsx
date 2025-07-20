@@ -23,10 +23,13 @@ const LogoutButton: React.FC = () => {
       console.error('Error during backend logout:', error);
     }
     
-    // Clear local storage regardless of backend call result
-    Cookies.remove('auth_token');
+    // Clear all authentication data regardless of backend call result
+    localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_status');
     localStorage.removeItem('auth_timestamp');
+    Cookies.remove('auth_token');
+    
+    // Navigate to home page
     navigate('/');
   };
 

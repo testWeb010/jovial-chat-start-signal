@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, User, Save, RefreshCw, AlertCircle, CheckCircle, Globe, Mail, Shield, Clock } from 'lucide-react';
 import { apiRequestJson } from '../../utils/api';
 import { toast } from 'sonner';
+import AuthenticatedWrapper from './AuthenticatedWrapper';
 
 interface SiteSettings {
   _id?: string;
@@ -159,7 +160,8 @@ const Settings = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; themeClas
   ];
 
   return (
-    <div className="space-y-6">
+    <AuthenticatedWrapper themeClasses={themeClasses}>
+      <div className="space-y-6">
       {/* Header */}
       <div className={`${themeClasses.cardBg} rounded-2xl p-6 ${themeClasses.border} border`}>
         <div className="flex items-center gap-3">
@@ -427,7 +429,8 @@ const Settings = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; themeClas
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </AuthenticatedWrapper>
   );
 };
 

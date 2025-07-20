@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Video, Image, Eye, Heart, TrendingUp, Calendar, Users, BarChart3 } from 'lucide-react';
 import { apiRequestJson } from '../../utils/api';
+import AuthenticatedWrapper from './AuthenticatedWrapper';
 
 interface DashboardData {
   totalVideos: number;
@@ -87,11 +88,12 @@ const Dashboard = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; themeCla
     }
   };
 
-  if (loading) return <div className="text-center p-8">Loading dashboard data...</div>;
-  if (error) return <div className="text-center p-8 text-red-500">Error: {error}</div>;
-
   return (
-    <div className="space-y-8">
+    <AuthenticatedWrapper themeClasses={themeClasses}>
+      {loading && <div className="text-center p-8">Loading dashboard data...</div>}
+      {error && <div className="text-center p-8 text-red-500">Error: {error}</div>}
+      {!loading && !error && (
+        <div className="space-y-8">
       {/* Welcome Section */}
       <div className={`${themeClasses.cardBg} rounded-2xl p-8 ${themeClasses.border} border`}>
         <div className="flex items-center justify-between">
@@ -184,7 +186,9 @@ const Dashboard = ({ isDarkMode, themeClasses }: { isDarkMode: boolean; themeCla
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      )}
+    </AuthenticatedWrapper>
   );
 };
 
