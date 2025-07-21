@@ -1,8 +1,16 @@
 import React from 'react';
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, ArrowUp } from 'lucide-react';
+import logo from '@/assets/images/ams-Photoroom.png';
 import { motion } from 'framer-motion';
 
 const Footer = () => {
+  const socialLinks = [
+    { Icon: Facebook, href: 'https://facebook.com' },
+    { Icon: Twitter, href: 'https://twitter.com' },
+    { Icon: Instagram, href: 'https://instagram.com' },
+    { Icon: Linkedin, href: 'https://www.linkedin.com/company/across-media-solutions-ams/?originalSubdomain=in' },
+    { Icon: Youtube, href: 'https://youtube.com/@acrossmediasolutions?si=BZZXwU6l2er38LyH' },
+  ];
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -40,16 +48,10 @@ const Footer = () => {
             variants={itemVariants}
           >
             <motion.div 
-              className="text-3xl font-bold"
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Across
-              </span>
-              <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
-                Media
-              </span>
+              <img src={logo} alt="AcrossMedia Logo" className="h-12" />
             </motion.div>
             
             <motion.p 
@@ -64,10 +66,12 @@ const Footer = () => {
               className="flex space-x-4"
               variants={itemVariants}
             >
-              {[Facebook, Twitter, Instagram, Linkedin, Youtube].map((Icon, index) => (
+              {socialLinks.map(({ Icon, href }, index) => (
                 <motion.a 
                   key={index}
-                  href="#" 
+                  href={href} 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center hover:bg-gradient-to-r hover:from-cyan-500 hover:to-pink-600 transition-all duration-300 border border-gray-700 hover:border-transparent"
                   whileHover={{ 
                     scale: 1.1, 
