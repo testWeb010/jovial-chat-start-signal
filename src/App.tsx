@@ -1,56 +1,43 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Header from './components/Header';
-import Hero from './components/Hero';
-import Services from './components/Services';
+import Index from './pages/Index';
 import About from './components/About';
-import Portfolio from './components/Portfolio';
 import Contact from './components/Contact';
-import Footer from './components/Footer';
 import Videos from './pages/Videos';
+import Projects from './pages/Projects';
+import IPDetail from './pages/IPDetail';
 import AdminPanel from './components/admin/AdminPanel';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
 import ForgotPassword from './components/auth/ForgotPassword';
 import PendingApproval from './components/auth/PendingApproval'
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import NotFound from './pages/NotFound'; // Corrected import path for NotFound component
-import Projects from './pages/Projects';
+import NotFound from './pages/NotFound';
 
 const AppContent = () => {
   const location = useLocation();
-  const isAdminPage = location.pathname.startsWith(import.meta.env.VITE_ADMIN_PATH || '/admin');
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
     <div className="min-h-screen">
-      {!isAdminPage && <Header />}
       <Routes>
-        <Route path="/" element={
-          <>
-            <Hero />
-            <Services />
-            <About />
-            <Portfolio />
-            <Contact />
-          </>
-        } />
-        <Route path={import.meta.env.VITE_LOGIN_PATH} element={<Login />} />
-        <Route path={import.meta.env.VITE_SIGNUP_PATH} element={<Signup />} />
-        <Route path={import.meta.env.VITE_ABOUT_PATH} element={<About />} />
-        <Route path={import.meta.env.VITE_CONTACT_PATH} element={<Contact />} />
-        <Route path={import.meta.env.VITE_FORGOT_PASSWORD_PATH} element={<ForgotPassword />} />
-        <Route path={import.meta.env.VITE_PENDING_APPROVAL_PATH} element={<PendingApproval />} />
-        <Route path={import.meta.env.VITE_VIDEOS_PATH} element={<Videos/>} />
-        <Route path={import.meta.env.VITE_PROJECTS_PATH} element={<Projects/>} />
-        <Route path={import.meta.env.VITE_ADMIN_PATH} element={
+        <Route path="/" element={<Index />} />
+        <Route path="/videos" element={<Videos />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/ip/:id" element={<IPDetail />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/pending-approval" element={<PendingApproval />} />
+        <Route path="/admin" element={
           <ProtectedRoute>
             <AdminPanel />
           </ProtectedRoute>
         } />
-        // Catch-all route for 404 Not Found
         <Route path="*" element={<NotFound />} />
       </Routes>
-      {!isAdminPage && <Footer />}
     </div>
   );
 };

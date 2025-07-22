@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, Instagram, Twitter, Linkedin, Youtube } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import logo from '@/assets/images/ams-Photoroom.png';
+import { useLenis } from '@/hooks/useLenis';
+import logo from '@/assets/images/ams-logo-new.png';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const lenis = useLenis();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,53 +20,61 @@ const Header = () => {
 
   return (
     <motion.header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${
         isScrolled 
-          ? 'bg-gradient-to-r from-black/90 via-gray-900/90 to-black/90 backdrop-blur-xl border-b border-primary/20' 
-          : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 backdrop-blur-sm'
+          ? 'bg-gradient-to-r from-black/95 via-gray-900/95 to-black/95 backdrop-blur-xl' 
+          : 'bg-gradient-to-r from-primary/20 via-purple-600/15 to-primary/20 backdrop-blur-lg'
       }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-24">
           {/* Logo */}
           <motion.div 
-            className="flex items-center z-10"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            className="flex items-center z-10 relative"
+            whileHover={{ scale: 1.08 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
           >
-            <NavLink to="/">
-              <img src={logo} alt="AcrossMedia Logo" className="h-12 drop-shadow-lg" />
+            <NavLink to="/" className="relative group">
+              <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 to-purple-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+              <img src={logo} alt="Across Media Solutions" className="relative h-16 drop-shadow-2xl filter brightness-110" />
             </NavLink>
           </motion.div>
           
           {/* Centered Navigation */}
-          <nav className="hidden md:flex items-center justify-center flex-1 space-x-12">
+          <nav className="hidden md:flex items-center justify-center flex-1 space-x-16">
             {['HOME', 'VIDEOS', 'ABOUT', 'CONTACT'].map((item, index) => (
               <motion.div
                 key={item}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 + 0.2 }}
+                transition={{ delay: index * 0.15 + 0.3 }}
+                whileHover={{ y: -2 }}
               >
                 <NavLink 
                   to={item === 'HOME' ? '/' : `/${item.toLowerCase()}`} 
-                  className={({ isActive }) => `
-                    relative text-sm font-semibold tracking-wide transition-all duration-300 hover:scale-105 inline-block group
-                    ${isActive 
-                      ? 'text-primary drop-shadow-sm' 
-                      : isScrolled 
-                        ? 'text-gray-200 hover:text-primary' 
-                        : 'text-white hover:text-primary'
-                    }
-                  `}
+                  className="relative text-base font-bold tracking-wider transition-all duration-500 hover:scale-110 inline-block group"
                 >
                   {({ isActive }) => (
                     <>
-                      {item}
-                      <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-accent transition-all duration-300 group-hover:w-full ${isActive ? 'w-full' : ''}`}></span>
+                      <span className={`relative z-10 transition-all duration-500 ${
+                        isActive 
+                          ? 'text-primary drop-shadow-lg' 
+                          : isScrolled 
+                            ? 'text-gray-100 hover:text-primary' 
+                            : 'text-white hover:text-primary'
+                      }`}>
+                        {item}
+                      </span>
+                      <motion.span 
+                        className={`absolute -bottom-2 left-0 h-1 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-full transition-all duration-500 ${
+                          isActive ? 'w-full opacity-100' : 'w-0 opacity-0 group-hover:w-full group-hover:opacity-100'
+                        }`}
+                        layoutId={isActive ? "activeTab" : undefined}
+                      />
+                      <div className="absolute -inset-2 bg-gradient-to-r from-primary/10 to-purple-600/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 blur"></div>
                     </>
                   )}
                 </NavLink>

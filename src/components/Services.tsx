@@ -1,5 +1,5 @@
 import React from 'react';
-import { Video, Users, Handshake, Lightbulb, ArrowUpRight } from 'lucide-react';
+import { Video, Users, Handshake, Lightbulb, ArrowUpRight, Target } from 'lucide-react';
 
 const Services = () => {
   const services = [
@@ -19,16 +19,16 @@ const Services = () => {
     },
     {
       icon: Handshake,
-      title: "Sponsorships",
-      description: "Curated sponsorship opportunities that align perfectly with your brand values and marketing objectives for maximum impact.",
-      features: ["Event Sponsorships", "Sports Marketing", "Entertainment Partnerships", "Brand Integration"],
+      title: "Sponsorships & Intellectual Properties",
+      description: "Curated sponsorship opportunities and unique IP development that align with your brand values, creating lasting value and memorable experiences.",
+      features: ["Event Sponsorships", "IP Development", "Content Licensing", "Rights Management", "Sports Marketing", "Format Creation"],
       gradient: "from-purple-500 to-pink-600"
     },
     {
-      icon: Lightbulb,
-      title: "Intellectual Properties",
-      description: "Developing and managing unique intellectual properties that create lasting value and memorable experiences for your audience.",
-      features: ["IP Development", "Content Licensing", "Format Creation", "Rights Management"],
+      icon: Target,
+      title: "Digital Marketing Solutions",
+      description: "Comprehensive digital marketing strategies that amplify your brand presence across all digital channels and drive measurable results.",
+      features: ["Social Media Strategy", "Performance Marketing", "Brand Positioning", "Analytics & Insights"],
       gradient: "from-pink-500 to-red-600"
     }
   ];
