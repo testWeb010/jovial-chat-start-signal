@@ -1,12 +1,11 @@
 import React from 'react';
-import { Facebook, Twitter, Instagram, Linkedin, Youtube, ArrowUp } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Youtube, ArrowUp } from 'lucide-react';
 import logo from '@/assets/images/ams-Photoroom.png';
 import { motion } from 'framer-motion';
 
 const Footer = () => {
   const socialLinks = [
     { Icon: Facebook, href: 'https://facebook.com' },
-    { Icon: Twitter, href: 'https://twitter.com' },
     { Icon: Instagram, href: 'https://instagram.com' },
     { Icon: Linkedin, href: 'https://www.linkedin.com/company/across-media-solutions-ams/?originalSubdomain=in' },
     { Icon: Youtube, href: 'https://youtube.com/@acrossmediasolutions?si=BZZXwU6l2er38LyH' },
@@ -141,41 +140,22 @@ const Footer = () => {
           variants={itemVariants}
         >
           <p className="text-gray-400 text-sm">
-            © 2024 Across Media. All rights reserved.
+            2024 Across Media. All rights reserved.
           </p>
           
-          <div className="flex items-center space-x-8 mt-4 md:mt-0">
-            <div className="flex space-x-6">
-              <motion.a 
-                href="#" 
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-                whileHover={{ y: -2, color: "#06b6d4" }}
-              >
-                Privacy Policy
-              </motion.a>
-              <motion.a 
-                href="#" 
-                className="text-gray-400 hover:text-white text-sm transition-colors"
-                whileHover={{ y: -2, color: "#06b6d4" }}
-              >
-                Terms of Service
-              </motion.a>
-            </div>
-            
-            <motion.button 
-              onClick={scrollToTop}
-              className="group w-10 h-10 bg-gradient-to-r from-cyan-500 to-pink-600 rounded-full flex items-center justify-center hover:scale-110 transition-all duration-300 shadow-lg shadow-cyan-500/25"
-              whileHover={{ 
-                scale: 1.2,
-                rotate: 360,
-                boxShadow: "0 0 30px rgba(6, 182, 212, 0.6)"
-              }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            >
-              <ArrowUp size={16} className="text-white group-hover:translate-y-[-2px] transition-transform" />
-            </motion.button>
-          </div>
+          <motion.button 
+            onClick={scrollToTop}
+            className="group w-10 h-10 bg-gradient-to-r from-cyan-500 to-pink-600 rounded-full flex items-center justify-center hover:scale-110 transition-all duration-300 shadow-lg shadow-cyan-500/25"
+            whileHover={{ 
+              scale: 1.2,
+              rotate: 360,
+              boxShadow: "0 0 30px rgba(6, 182, 212, 0.6)"
+            }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <ArrowUp size={16} className="text-white group-hover:translate-y-[-2px] transition-transform" />
+          </motion.button>
         </motion.div>
       </div>
     </motion.footer>

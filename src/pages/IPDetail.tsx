@@ -2,8 +2,8 @@ import React from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Play, Calendar, Eye, Share2, Download, Star } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+// import Header from '@/components/Header';
+// import Footer from '@/components/Footer';
 
 interface IP {
   id: string;
@@ -41,7 +41,7 @@ const IPDetail = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header />
+      {/* <Header /> */}
       
       <main className="pt-24">
         {/* Hero Section */}
@@ -283,7 +283,7 @@ const IPDetail = () => {
         </section>
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };
